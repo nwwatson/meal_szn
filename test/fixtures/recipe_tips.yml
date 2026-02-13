@@ -1,0 +1,9 @@
+salmon_tip:
+  id: tip_salmon
+  recipe_id: recipe_salmon
+  tip: Use wild-caught salmon for the best omega-3 content.
+
+eggs_tip:
+  id: tip_eggs
+  recipe_id: recipe_eggs
+  tip: Remove eggs from heat while still slightly wet for the creamiest texture.

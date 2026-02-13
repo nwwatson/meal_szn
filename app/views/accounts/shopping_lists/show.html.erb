@@ -1,0 +1,89 @@
+<% content_for(:title, "#{@shopping_list.name || 'Shopping List'} - MealSzn") %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <%= link_to "&larr; Back to Meal Plan".html_safe, meal_plan_path(@meal_plan), class: "text-emerald-600 hover:text-emerald-700 text-sm font-medium" %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900"><%= @shopping_list.name || "Shopping List" %></h1>
+          <p class="text-sm text-gray-500 mt-1">
+            <%= @shopping_list.checked_count %> of <%= @shopping_list.total_count %> items checked
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <%= button_to "Regenerate", meal_plan_shopping_list_path(@meal_plan), method: :post, class: "bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 text-sm font-medium", data: { turbo_confirm: "This will replace the current shopping list. Continue?" } %>
+          <%= button_to "Delete", meal_plan_shopping_list_path(@meal_plan), method: :delete, class: "bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 text-sm font-medium", data: { turbo_confirm: "Delete this shopping list?" } %>
+        </div>
+      </div>
+
+      <% if @shopping_list.total_count > 0 %>
+        <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
+          <div class="bg-emerald-500 h-2 rounded-full" style="width: <%= (@shopping_list.checked_count.to_f / @shopping_list.total_count * 100).round %>%"></div>
+        </div>
+      <% end %>
+    </div>
+
+    <% unchecked = @shopping_list.items.unchecked.alphabetical %>
+    <% checked = @shopping_list.items.checked.alphabetical %>
+
+    <% if unchecked.any? %>
+      <div class="p-6 <%= checked.any? ? 'border-b border-gray-200' : '' %>">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">To Buy (<%= unchecked.size %>)</h2>
+        <ul class="space-y-2">
+          <% unchecked.each do |item| %>
+            <li class="flex items-center justify-between group">
+              <div class="flex items-center gap-3">
+                <%= button_to toggle_shopping_list_item_path(item), method: :patch, class: "flex items-center" do %>
+                  <span class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center hover:border-emerald-500 cursor-pointer"></span>
+                <% end %>
+                <span class="text-gray-900"><%= item.display_text %></span>
+              </div>
+              <%= button_to shopping_list_item_path(item), method: :delete, class: "text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity", data: { turbo_confirm: "Remove this item?" } do %>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if checked.any? %>
+      <div class="p-6">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Checked Off (<%= checked.size %>)</h2>
+        <ul class="space-y-2">
+          <% checked.each do |item| %>
+            <li class="flex items-center justify-between group">
+              <div class="flex items-center gap-3">
+                <%= button_to toggle_shopping_list_item_path(item), method: :patch, class: "flex items-center" do %>
+                  <span class="w-5 h-5 border-2 border-emerald-500 bg-emerald-500 rounded flex items-center justify-center cursor-pointer">
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </span>
+                <% end %>
+                <span class="text-gray-400 line-through"><%= item.display_text %></span>
+              </div>
+              <%= button_to shopping_list_item_path(item), method: :delete, class: "text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity", data: { turbo_confirm: "Remove this item?" } do %>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if @shopping_list.items.empty? %>
+      <div class="p-6 text-center text-gray-500">
+        <p>No items in this shopping list.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

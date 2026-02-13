@@ -1,0 +1,50 @@
+class Accounts::MealPlanMealsController < ApplicationController
+  before_action :set_meal_plan
+
+  def create
+    day = @meal_plan.days.find(params[:meal_plan_day_id])
+    @meal = day.meals.build(meal_params)
+
+    respond_to do |format|
+      if @meal.save
+        auto_create_portions_for(@meal)
+        format.html { redirect_back fallback_location: meal_plan_path(@meal_plan), notice: "Meal added." }
+        format.json { render json: { status: "ok", meal_id: @meal.id }, status: :created }
+      else
+        format.html { redirect_back fallback_location: meal_plan_path(@meal_plan), alert: "Could not add meal." }
+        format.json { render json: { status: "error", errors: @meal.errors.full_messages }, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def destroy
+    meal = MealPlanMeal.joins(meal_plan_day: :meal_plan)
+      .where(meal_plans: { account_id: Current.account.id, id: @meal_plan.id })
+      .find(params[:id])
+    meal.destroy
+
+    respond_to do |format|
+      format.html { redirect_back fallback_location: meal_plan_path(@meal_plan), notice: "Meal removed." }
+      format.json { render json: { status: "ok" } }
+    end
+  end
+
+  private
+
+  def set_meal_plan
+    @meal_plan = Current.account.meal_plans.find(params[:meal_plan_id])
+  end
+
+  def meal_params
+    params.require(:meal).permit(:recipe_id, :meal_type, :servings)
+  end
+
+  def auto_create_portions_for(meal)
+    @meal_plan.participants.includes(:dietary_profile).each do |participant|
+      calculator = PortionCalculator.new(participant)
+      day_portions = calculator.suggest_portions_for_day(meal.meal_plan_day)
+      servings = day_portions[meal.id] || 1.0
+      participant.portions.create!(meal_plan_meal: meal, servings: servings)
+    end
+  end
+end

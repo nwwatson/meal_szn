@@ -1,0 +1,33 @@
+dad:
+  id: dietary_profile_dad
+  account_id: acct_test_one
+  user_id: user_test_one
+  name: Dad
+  diet_name: "Ketogenic (Keto)"
+  daily_calories_target: 2000
+  active: true
+
+mom:
+  id: dietary_profile_mom
+  account_id: acct_test_one
+  user_id: user_test_two
+  name: Mom
+  diet_name:
+  daily_calories_target: 1800
+  active: true
+
+kid:
+  id: dietary_profile_kid
+  account_id: acct_test_one
+  name: Timmy
+  diet_name: "Standard / USDA Guidelines"
+  daily_calories_target: 1500
+  active: true
+
+inactive:
+  id: dietary_profile_inactive
+  account_id: acct_test_one
+  name: Grandpa
+  diet_name: "Mediterranean"
+  daily_calories_target: 1600
+  active: false

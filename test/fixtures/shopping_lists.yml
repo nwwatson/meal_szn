@@ -1,0 +1,6 @@
+one:
+  id: shopping_list_one
+  account_id: acct_test_one
+  user_id: user_test_one
+  meal_plan_id: meal_plan_current
+  name: Current Week Plan Shopping List

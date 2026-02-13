@@ -1,0 +1,13 @@
+breakfast:
+  id: meal_plan_meal_breakfast
+  meal_plan_day_id: meal_plan_day_one
+  recipe_id: recipe_eggs
+  meal_type: 0
+  servings: 1.0
+
+dinner:
+  id: meal_plan_meal_dinner
+  meal_plan_day_id: meal_plan_day_one
+  recipe_id: recipe_salmon
+  meal_type: 2
+  servings: 1.5

@@ -1,0 +1,47 @@
+<% content_for(:title, "Dietary Profiles - MealSzn") %>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <%= link_to "&larr; Back to Settings".html_safe, settings_path, class: "text-emerald-600 hover:text-emerald-700 text-sm font-medium" %>
+  </div>
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Dietary Profiles</h1>
+    <%= link_to "New Profile", new_dietary_profile_path, class: "bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium" %>
+  </div>
+
+  <% if @dietary_profiles.any? %>
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diet</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Daily Calories</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Linked User</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @dietary_profiles.each do |profile| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= profile.name %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= profile.diet_name.presence || "None" %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= profile.daily_calories_target ? "#{profile.daily_calories_target} cal" : "Not set" %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= profile.user&.name || "—" %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                <%= link_to "Edit", edit_dietary_profile_path(profile), class: "text-emerald-600 hover:text-emerald-700 font-medium mr-3" %>
+                <%= button_to "Remove", dietary_profile_path(profile), method: :delete, class: "text-red-600 hover:text-red-700 font-medium", data: { turbo_confirm: "Remove this dietary profile?" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-lg shadow px-6 py-12 text-center">
+      <p class="text-gray-500 mb-4">No dietary profiles yet. Create profiles for your family members to track individual nutrition goals.</p>
+      <%= link_to "Create First Profile", new_dietary_profile_path, class: "text-emerald-600 hover:text-emerald-700 font-medium" %>
+    </div>
+  <% end %>
+</div>

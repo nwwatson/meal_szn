@@ -1,0 +1,39 @@
+salmon_fillet:
+  id: ingredient_salmon_fillet
+  recipe_id: recipe_salmon
+  name: Salmon Fillet
+  quantity: "2"
+  unit: lbs
+  display_order: 0
+
+butter:
+  id: ingredient_butter
+  recipe_id: recipe_salmon
+  name: Butter
+  quantity: "2"
+  unit: tbsp
+  display_order: 1
+
+eggs:
+  id: ingredient_eggs
+  recipe_id: recipe_eggs
+  name: Eggs
+  quantity: "4"
+  unit: large
+  display_order: 0
+
+cheese:
+  id: ingredient_cheese
+  recipe_id: recipe_eggs
+  name: Cheddar Cheese
+  quantity: "1/2"
+  unit: cup
+  display_order: 1
+
+cauliflower:
+  id: ingredient_cauliflower
+  recipe_id: recipe_cauliflower
+  name: Cauliflower
+  quantity: "1"
+  unit: head
+  display_order: 0

@@ -1,0 +1,9 @@
+dad_in_current:
+  id: participant_dad_current
+  meal_plan_id: meal_plan_current
+  dietary_profile_id: dietary_profile_dad
+
+kid_in_current:
+  id: participant_kid_current
+  meal_plan_id: meal_plan_current
+  dietary_profile_id: dietary_profile_kid

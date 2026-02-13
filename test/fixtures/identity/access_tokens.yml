@@ -1,0 +1,29 @@
+read_token:
+  id: token_read
+  identity_id: id_test_user_one
+  token: test_read_token_abc123
+  name: Read Only Token
+  permission: 0
+
+write_token:
+  id: token_write
+  identity_id: id_test_user_one
+  token: test_write_token_xyz789
+  name: Read/Write Token
+  permission: 1
+
+revoked_token:
+  id: token_revoked
+  identity_id: id_test_user_one
+  token: test_revoked_token_111
+  name: Revoked Token
+  permission: 0
+  revoked_at: <%= 1.day.ago %>
+
+expired_token:
+  id: token_expired
+  identity_id: id_test_user_one
+  token: test_expired_token_222
+  name: Expired Token
+  permission: 0
+  expires_at: <%= 1.day.ago %>

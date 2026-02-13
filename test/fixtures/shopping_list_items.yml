@@ -1,0 +1,23 @@
+salmon:
+  id: sli_salmon
+  shopping_list_id: shopping_list_one
+  name: Salmon Fillet
+  quantity: "2"
+  unit: lbs
+  checked: false
+
+butter:
+  id: sli_butter
+  shopping_list_id: shopping_list_one
+  name: Butter
+  quantity: "2"
+  unit: tbsp
+  checked: false
+
+eggs:
+  id: sli_eggs
+  shopping_list_id: shopping_list_one
+  name: Eggs
+  quantity: "4"
+  unit: large
+  checked: true

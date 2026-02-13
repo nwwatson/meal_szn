@@ -1,0 +1,15 @@
+egg_large:
+  id: portion_egg_large
+  nutrition_item_id: nutrition_item_egg
+  description: "1 large"
+  amount: 1.0
+  unit: large
+  gram_weight: 50.0
+
+butter_tbsp:
+  id: portion_butter_tbsp
+  nutrition_item_id: nutrition_item_butter
+  description: "1 tbsp"
+  amount: 1.0
+  unit: tbsp
+  gram_weight: 14.2

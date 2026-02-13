@@ -1,0 +1,14 @@
+egg:
+  id: alias_egg
+  nutrition_item_id: nutrition_item_egg
+  name: egg
+
+eggs:
+  id: alias_eggs
+  nutrition_item_id: nutrition_item_egg
+  name: eggs
+
+butter:
+  id: alias_butter
+  nutrition_item_id: nutrition_item_butter
+  name: butter

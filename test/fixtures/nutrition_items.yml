@@ -1,0 +1,27 @@
+egg:
+  id: nutrition_item_egg
+  fdc_id: 171287
+  description: "Egg, whole, raw"
+  calories: 143
+  fat: 9.51
+  protein: 12.56
+  carbs: 0.72
+  fiber: 0
+  sodium: 142
+  potassium: 138
+  magnesium: 12
+  portions_fetched: true
+
+butter:
+  id: nutrition_item_butter
+  fdc_id: 173430
+  description: "Butter, salted"
+  calories: 717
+  fat: 81.11
+  protein: 0.85
+  carbs: 0.06
+  fiber: 0
+  sodium: 643
+  potassium: 24
+  magnesium: 2
+  portions_fetched: true

@@ -1,0 +1,19 @@
+salmon_keto:
+  id: rt_salmon_keto
+  recipe_id: recipe_salmon
+  tag_id: tag_keto
+
+salmon_quick:
+  id: rt_salmon_quick
+  recipe_id: recipe_salmon
+  tag_id: tag_quick
+
+eggs_keto:
+  id: rt_eggs_keto
+  recipe_id: recipe_eggs
+  tag_id: tag_keto
+
+eggs_quick:
+  id: rt_eggs_quick
+  recipe_id: recipe_eggs
+  tag_id: tag_quick

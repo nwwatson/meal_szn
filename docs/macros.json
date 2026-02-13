@@ -1,0 +1,74 @@
+{
+  "diets": [
+    {
+      "name": "Standard / USDA Guidelines",
+      "carbs_pct": { "min": 45, "max": 65 },
+      "fat_pct": { "min": 20, "max": 35 },
+      "protein_pct": { "min": 10, "max": 35 },
+      "notes": "Baseline used for most nutrition labels."
+    },
+    {
+      "name": "Ketogenic (Keto)",
+      "carbs_pct": { "min": 5, "max": 10 },
+      "fat_pct": { "min": 70, "max": 75 },
+      "protein_pct": { "min": 20, "max": 25 },
+      "notes": "Carbs typically kept under 20-50g/day to maintain ketosis."
+    },
+    {
+      "name": "Low-Carb (non-keto)",
+      "carbs_pct": { "min": 20, "max": 30 },
+      "fat_pct": { "min": 30, "max": 40 },
+      "protein_pct": { "min": 30, "max": 40 },
+      "notes": "Less restrictive than keto; emphasizes reducing carbs without requiring ketosis."
+    },
+    {
+      "name": "Paleo",
+      "carbs_pct": { "min": 30, "max": 40 },
+      "fat_pct": { "min": 30, "max": 40 },
+      "protein_pct": { "min": 25, "max": 35 },
+      "notes": "No strict macro targets; focus is on whole foods, no grains or processed food."
+    },
+    {
+      "name": "Zone Diet",
+      "carbs_pct": { "min": 40, "max": 40 },
+      "fat_pct": { "min": 30, "max": 30 },
+      "protein_pct": { "min": 30, "max": 30 },
+      "notes": "Precisely defined 40/30/30 macro split."
+    },
+    {
+      "name": "Mediterranean",
+      "carbs_pct": { "min": 40, "max": 50 },
+      "fat_pct": { "min": 30, "max": 40 },
+      "protein_pct": { "min": 15, "max": 20 },
+      "notes": "Emphasizes healthy fats from olive oil and fish over saturated fats."
+    },
+    {
+      "name": "High-Protein / Bodybuilding",
+      "carbs_pct": { "min": 30, "max": 40 },
+      "fat_pct": { "min": 20, "max": 30 },
+      "protein_pct": { "min": 40, "max": 50 },
+      "notes": "Protein typically targeted at 1g per pound of body weight or higher."
+    },
+    {
+      "name": "Carnivore",
+      "carbs_pct": { "min": 0, "max": 0 },
+      "fat_pct": { "min": 60, "max": 80 },
+      "protein_pct": { "min": 20, "max": 40 },
+      "notes": "All animal products, no plant foods."
+    },
+    {
+      "name": "Vegan (whole-food)",
+      "carbs_pct": { "min": 50, "max": 60 },
+      "fat_pct": { "min": 20, "max": 30 },
+      "protein_pct": { "min": 15, "max": 20 },
+      "notes": "Higher protein requires intentional choices like legumes, tofu, and seitan."
+    },
+    {
+      "name": "If It Fits Your Macros (IIFYM)",
+      "carbs_pct": null,
+      "fat_pct": null,
+      "protein_pct": null,
+      "notes": "No fixed split; personalized targets based on individual goals (cutting, bulking, maintenance)."
+    }
+  ]
+}

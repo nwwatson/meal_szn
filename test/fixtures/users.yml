@@ -1,0 +1,30 @@
+one:
+  id: user_test_one
+  account_id: acct_test_one
+  identity_id: id_test_user_one
+  name: Test User
+  role: 0
+  active: true
+
+two:
+  id: user_test_two
+  account_id: acct_test_one
+  identity_id: id_test_user_two
+  name: Another User
+  role: 2
+  active: true
+
+admin:
+  id: user_admin
+  account_id: acct_test_one
+  identity_id: id_staff_user
+  name: Admin User
+  role: 1
+  active: true
+
+inactive:
+  id: user_inactive
+  account_id: acct_test_one
+  name: Inactive User
+  role: 2
+  active: false

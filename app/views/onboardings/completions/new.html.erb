@@ -1,0 +1,35 @@
+<% content_for(:title, "Set up your organization - MealSzn") %>
+
+<h2 class="text-2xl font-bold text-gray-900 mb-2 text-center">Set up your organization</h2>
+
+<p class="text-gray-600 mb-6 text-center">
+  Tell us about yourself and your organization
+</p>
+
+<%= form_with model: @onboarding, url: onboarding_completion_path, method: :post, class: "space-y-6" do |f| %>
+  <div>
+    <%= f.label :full_name, "Your name", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :full_name,
+        required: true,
+        autofocus: true,
+        autocomplete: "name",
+        name: "full_name",
+        class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500",
+        placeholder: "Jane Smith" %>
+  </div>
+
+  <div>
+    <%= f.label :organization_name, "Organization name", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :organization_name,
+        required: true,
+        autocomplete: "organization",
+        name: "organization_name",
+        class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500",
+        placeholder: "Acme Inc." %>
+  </div>
+
+  <div>
+    <%= f.submit "Complete setup",
+        class: "w-full bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 font-medium transition-colors cursor-pointer" %>
+  </div>
+<% end %>

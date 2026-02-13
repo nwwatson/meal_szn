@@ -1,0 +1,23 @@
+dad_breakfast:
+  id: portion_dad_breakfast
+  meal_plan_meal_id: meal_plan_meal_breakfast
+  meal_plan_participant_id: participant_dad_current
+  servings: 1.5
+
+dad_dinner:
+  id: portion_dad_dinner
+  meal_plan_meal_id: meal_plan_meal_dinner
+  meal_plan_participant_id: participant_dad_current
+  servings: 1.0
+
+kid_breakfast:
+  id: portion_kid_breakfast
+  meal_plan_meal_id: meal_plan_meal_breakfast
+  meal_plan_participant_id: participant_kid_current
+  servings: 0.75
+
+kid_dinner:
+  id: portion_kid_dinner
+  meal_plan_meal_id: meal_plan_meal_dinner
+  meal_plan_participant_id: participant_kid_current
+  servings: 0.5

@@ -1,0 +1,19 @@
+<% now = Time.current.to_fs(:db) %>
+
+active:
+  id: join_code_active
+  account_id: acct_test_one
+  code: ABC123DEF456
+  usage_count: 0
+  usage_limit: 10000000000
+  created_at: "<%= now %>"
+  updated_at: "<%= now %>"
+
+near_limit:
+  id: join_code_near_limit
+  account_id: acct_test_two
+  code: XYZ789GHI012
+  usage_count: 9
+  usage_limit: 10
+  created_at: "<%= now %>"
+  updated_at: "<%= now %>"

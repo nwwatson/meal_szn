@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: acct_test_one
+  external_account_id: "12345678"
+  name: Test Organization
+
+two:
+  id: acct_test_two
+  external_account_id: "87654321"
+  name: Another Organization

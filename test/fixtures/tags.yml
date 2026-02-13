@@ -1,0 +1,19 @@
+keto:
+  id: tag_keto
+  account_id: acct_test_one
+  name: keto
+
+quick:
+  id: tag_quick
+  account_id: acct_test_one
+  name: quick
+
+dinner_party:
+  id: tag_dinner_party
+  account_id: acct_test_one
+  name: dinner party
+
+other_account_tag:
+  id: tag_other
+  account_id: acct_test_two
+  name: keto

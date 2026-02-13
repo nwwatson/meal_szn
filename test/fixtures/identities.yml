@@ -1,0 +1,16 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: id_test_user_one
+  email_address: test@example.com
+  staff: false
+
+two:
+  id: id_test_user_two
+  email_address: another@example.com
+  staff: false
+
+staff:
+  id: id_staff_user
+  email_address: staff@example.com
+  staff: true

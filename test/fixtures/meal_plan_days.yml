@@ -1,0 +1,11 @@
+day_one:
+  id: meal_plan_day_one
+  meal_plan_id: meal_plan_current
+  date: <%= Date.current %>
+  day_number: 1
+
+day_two:
+  id: meal_plan_day_two
+  meal_plan_id: meal_plan_current
+  date: <%= Date.current + 1.day %>
+  day_number: 2

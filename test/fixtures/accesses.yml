@@ -1,0 +1,15 @@
+access_only:
+  id: access_one
+  account_id: acct_test_one
+  user_id: user_test_one
+  entity_type: Recipe
+  entity_id: recipe_salmon
+  involvement: 0
+
+watching:
+  id: access_two
+  account_id: acct_test_one
+  user_id: user_test_two
+  entity_type: Recipe
+  entity_id: recipe_eggs
+  involvement: 1

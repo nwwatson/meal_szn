@@ -1,0 +1,55 @@
+<div>
+  <div data-add-to-meal-plan-target="container" class="hidden fixed inset-0 z-50 overflow-y-auto" data-action="keydown.esc->add-to-meal-plan#close">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" data-action="click->add-to-meal-plan#close"></div>
+
+      <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Add to Meal Plan</h3>
+
+        <div data-add-to-meal-plan-target="message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
+
+        <div data-add-to-meal-plan-target="step1" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Select Meal Plan</label>
+            <select data-add-to-meal-plan-target="planSelect" data-action="change->add-to-meal-plan#planSelected" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+              <option value="">Choose a meal plan...</option>
+              <% meal_plans.each do |plan| %>
+                <option value="<%= plan.id %>" data-days='<%= plan.days.order(:day_number).map { |d| { id: d.id, label: "Day #{d.day_number} - #{d.date.strftime('%A, %b %-d')}" } }.to_json %>'>
+                  <%= plan.name %> (<%= plan.start_date.strftime("%b %-d") %> - <%= plan.end_date.strftime("%b %-d") %>)
+                </option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+
+        <div data-add-to-meal-plan-target="step2" class="hidden space-y-4 mt-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Day</label>
+            <select data-add-to-meal-plan-target="daySelect" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Meal Type</label>
+            <select data-add-to-meal-plan-target="mealType" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Servings</label>
+            <input type="number" data-add-to-meal-plan-target="servings" value="1" min="0.25" step="0.25" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4">
+            <button type="button" data-action="add-to-meal-plan#close" class="px-4 py-2 text-gray-700 hover:text-gray-900 text-sm font-medium">Cancel</button>
+            <button type="button" data-action="add-to-meal-plan#submit" data-add-to-meal-plan-target="submitBtn" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">Add Meal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

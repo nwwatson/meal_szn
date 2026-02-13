@@ -1,0 +1,17 @@
+one:
+  id: meal_plan_current
+  account_id: acct_test_one
+  user_id: user_test_one
+  name: Current Week Plan
+  start_date: <%= Date.current %>
+  end_date: <%= Date.current + 6.days %>
+  daily_calories_target: 2000
+
+past:
+  id: meal_plan_past
+  account_id: acct_test_one
+  user_id: user_test_one
+  name: Last Week Plan
+  start_date: <%= 2.weeks.ago.to_date %>
+  end_date: <%= 1.week.ago.to_date %>
+  daily_calories_target: 1800

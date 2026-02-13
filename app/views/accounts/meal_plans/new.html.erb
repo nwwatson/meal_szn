@@ -1,0 +1,11 @@
+<% content_for(:title, "New Meal Plan - MealSzn") %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <%= link_to "&larr; Back to Meal Plans".html_safe, meal_plans_path, class: "text-emerald-600 hover:text-emerald-700 text-sm font-medium" %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">New Meal Plan</h1>
+
+  <%= render "form", meal_plan: @meal_plan %>
+</div>

@@ -1,0 +1,17 @@
+salmon_step_one:
+  id: instruction_salmon_1
+  recipe_id: recipe_salmon
+  step_number: 1
+  instruction: Preheat oven to 400°F. Season salmon fillets with salt and pepper.
+
+salmon_step_two:
+  id: instruction_salmon_2
+  recipe_id: recipe_salmon
+  step_number: 2
+  instruction: Place salmon on a baking sheet and top with butter. Bake for 12 minutes.
+
+eggs_step_one:
+  id: instruction_eggs_1
+  recipe_id: recipe_eggs
+  step_number: 1
+  instruction: Whisk eggs with cheese and scramble in a buttered pan over medium heat.

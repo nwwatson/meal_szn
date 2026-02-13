@@ -1,0 +1,31 @@
+<% now = Time.current.to_fs(:db) %>
+
+salmon_nutrition:
+  id: nutrition_salmon
+  recipe_id: recipe_salmon
+  calories: 450
+  fat: 28.0
+  protein: 42.0
+  carbs: 2.0
+  fiber: 0.0
+  net_carbs: 2.0
+  sodium: 380
+  potassium: 620
+  magnesium: 45
+  created_at: "<%= now %>"
+  updated_at: "<%= now %>"
+
+eggs_nutrition:
+  id: nutrition_eggs
+  recipe_id: recipe_eggs
+  calories: 320
+  fat: 24.0
+  protein: 22.0
+  carbs: 1.5
+  fiber: 0.0
+  net_carbs: 1.5
+  sodium: 420
+  potassium: 180
+  magnesium: 15
+  created_at: "<%= now %>"
+  updated_at: "<%= now %>"
