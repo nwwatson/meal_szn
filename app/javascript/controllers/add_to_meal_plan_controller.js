@@ -1,19 +1,48 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["container", "planSelect", "step1", "step2", "daySelect", "mealType", "servings", "submitBtn", "message"]
+  static targets = ["container", "backdrop", "dialog", "planSelect", "step1", "step2", "daySelect", "mealType", "servings", "submitBtn", "message"]
   static values = { recipeId: String, baseUrl: String }
 
   open() {
     this.containerTarget.classList.remove("hidden")
     document.body.style.overflow = "hidden"
     this.hideMessage()
+
+    requestAnimationFrame(() => {
+      if (this.hasBackdropTarget) {
+        this.backdropTarget.classList.remove("opacity-0")
+        this.backdropTarget.classList.add("opacity-100")
+      }
+      if (this.hasDialogTarget) {
+        this.dialogTarget.classList.remove("opacity-0", "scale-95")
+        this.dialogTarget.classList.add("opacity-100", "scale-100")
+      }
+    })
   }
 
   close() {
-    this.containerTarget.classList.add("hidden")
-    document.body.style.overflow = ""
-    this.reset()
+    if (this.hasBackdropTarget) {
+      this.backdropTarget.classList.remove("opacity-100")
+      this.backdropTarget.classList.add("opacity-0")
+    }
+    if (this.hasDialogTarget) {
+      this.dialogTarget.classList.remove("opacity-100", "scale-100")
+      this.dialogTarget.classList.add("opacity-0", "scale-95")
+    }
+
+    const onEnd = () => {
+      this.containerTarget.classList.add("hidden")
+      document.body.style.overflow = ""
+      this.reset()
+    }
+
+    if (this.hasDialogTarget) {
+      this.dialogTarget.addEventListener("transitionend", onEnd, { once: true })
+      setTimeout(onEnd, 250)
+    } else {
+      onEnd()
+    }
   }
 
   planSelected() {
@@ -82,7 +111,7 @@ export default class extends Controller {
 
   showMessage(text, type) {
     this.messageTarget.textContent = text
-    this.messageTarget.className = `mb-4 p-3 rounded-lg text-sm ${type === "success" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`
+    this.messageTarget.className = `mb-4 p-3 rounded-lg text-sm ${type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`
     this.messageTarget.classList.remove("hidden")
   }
 
