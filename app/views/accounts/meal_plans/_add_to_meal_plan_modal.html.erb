@@ -1,9 +1,9 @@
 <div>
   <div data-add-to-meal-plan-target="container" class="hidden fixed inset-0 z-50 overflow-y-auto" data-action="keydown.esc->add-to-meal-plan#close">
     <div class="flex items-center justify-center min-h-screen px-4">
-      <div class="fixed inset-0 bg-warm-500 bg-opacity-75 transition-opacity" data-action="click->add-to-meal-plan#close"></div>
+      <div data-add-to-meal-plan-target="backdrop" class="fixed inset-0 bg-warm-500/75 opacity-0 transition-opacity duration-200 ease-out" data-action="click->add-to-meal-plan#close"></div>
 
-      <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10">
+      <div data-add-to-meal-plan-target="dialog" class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10 opacity-0 scale-95 transition-all duration-200 ease-out">
         <h3 class="text-lg font-semibold text-warm-900 mb-4">Add to Meal Plan</h3>
 
         <div data-add-to-meal-plan-target="message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
