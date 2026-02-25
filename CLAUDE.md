@@ -55,6 +55,19 @@ All primary keys are string UUIDs. Key models:
 
 Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionController::API` (no views). Recipes expose `to_api_response` and `to_meal_planning_response` serialization methods directly on the model.
 
+### AI Service Layer
+
+`Ai::Client` (`app/services/ai/client.rb`) wraps the Anthropic Claude API via the `anthropic` gem. Configured in `config/initializers/ai.rb` (default model: `claude-sonnet-4-20250514`).
+
+**Methods:**
+- `chat(messages:, system:, max_tokens:)` — text completion
+- `chat_with_tools(messages:, tools:, system:, max_tokens:)` — structured JSON via tool_use
+- `vision(messages:, system:, max_tokens:)` — image + text input
+
+**Credentials:** `Rails.application.credentials.dig(:ai, :anthropic, :api_key)`
+
+**Error handling:** Retries 3× with exponential backoff (1s/2s/4s) on rate limits, server errors, and timeouts. Custom exceptions: `Ai::Client::ApiError`, `RateLimitError`, `TimeoutError`, `AuthenticationError`.
+
 ### Design System
 
 Defined in `app/assets/tailwind/application.css` using Tailwind v4 `@theme` block.
