@@ -2,6 +2,11 @@
 
 A meal planning application built with Rails 8.1 for managing recipes, weekly meal plans, family dietary profiles, and shopping lists. Designed for families who share meals but have individual nutrition goals.
 
+## Documentation
+
+- [System Overview](docs/system-overview.md) — What MealSzn is, the problem it solves, and how the core concepts fit together
+- [Auth & Security Specification](docs/auth-security-specification.md) — Passwordless authentication and multi-tenant authorization architecture
+
 ## Requirements
 
 - Ruby 3.4.4
