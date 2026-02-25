@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_25_213133) do
   create_table "access_tokens", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at"
@@ -100,6 +100,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_000004) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "ai_task_statuses", id: :string, force: :cascade do |t|
+    t.string "account_id", null: false
+    t.datetime "created_at", null: false
+    t.string "error_message"
+    t.integer "progress_percentage", default: 0, null: false
+    t.json "result"
+    t.integer "status", default: 0, null: false
+    t.string "task_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "status"], name: "index_ai_task_statuses_on_account_id_and_status"
+    t.index ["account_id"], name: "index_ai_task_statuses_on_account_id"
   end
 
   create_table "dietary_profiles", id: :string, force: :cascade do |t|
@@ -380,6 +393,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_000004) do
   add_foreign_key "account_join_codes", "accounts"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "ai_task_statuses", "accounts"
   add_foreign_key "dietary_profiles", "accounts"
   add_foreign_key "dietary_profiles", "users"
   add_foreign_key "ingredients", "nutrition_items"

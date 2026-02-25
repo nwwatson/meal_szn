@@ -10,6 +10,7 @@ class Account < ApplicationRecord
   has_many :tags, dependent: :destroy
   has_many :meal_plans, dependent: :destroy
   has_many :dietary_profiles, dependent: :destroy
+  has_many :ai_task_statuses, dependent: :destroy
 
   validates :name, presence: true
   validates :external_account_id, presence: true, uniqueness: true
