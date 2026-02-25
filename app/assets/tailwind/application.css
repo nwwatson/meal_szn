@@ -1,1 +1,70 @@
 @import "tailwindcss";
+
+@theme {
+  /* ============================================
+   * MealSzn Design System
+   * ============================================
+   * Primary: Terracotta — warm, earthy, food-forward
+   * Accent:  Saffron/Golden — sunny, inviting CTAs
+   * Warm:    Warm neutrals — replaces cold grays
+   * ============================================ */
+
+  /* --- Typography --- */
+  --font-sans: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bitter", ui-serif, Georgia, serif;
+
+  /* --- Primary (Terracotta) --- */
+  --color-primary-50: #fdf5f0;
+  --color-primary-100: #fae8dd;
+  --color-primary-200: #f5ccaf;
+  --color-primary-300: #edaa7d;
+  --color-primary-400: #e28b52;
+  --color-primary-500: #d4722e;
+  --color-primary-600: #c2582a;
+  --color-primary-700: #a14722;
+  --color-primary-800: #7d381c;
+  --color-primary-900: #5c2b17;
+
+  /* --- Accent (Saffron) --- */
+  --color-accent-50: #fdf8eb;
+  --color-accent-100: #fbf0cc;
+  --color-accent-200: #f7e099;
+  --color-accent-300: #f0cb5f;
+  --color-accent-400: #e6b42e;
+  --color-accent-500: #d4972f;
+  --color-accent-600: #b87d1f;
+  --color-accent-700: #946018;
+  --color-accent-800: #6d4714;
+  --color-accent-900: #4a3010;
+
+  /* --- Warm Neutrals --- */
+  --color-warm-50: #fdfbf7;
+  --color-warm-100: #f5f0e8;
+  --color-warm-200: #e8dfd2;
+  --color-warm-300: #d4c8b8;
+  --color-warm-400: #b5a794;
+  --color-warm-500: #8b7355;
+  --color-warm-600: #6b5a42;
+  --color-warm-700: #504333;
+  --color-warm-800: #3d2b1f;
+  --color-warm-900: #2a1c13;
+}
+
+/* Warm body background gradient */
+.bg-warm-gradient {
+  background: linear-gradient(168deg, #fdfbf7 0%, #fae8dd 50%, #fff5eb 100%);
+}
+
+/* Public layout card glass effect */
+.card-warm {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 4px 24px rgba(93, 43, 23, 0.08),
+    0 1px 3px rgba(93, 43, 23, 0.04);
+}
+
+/* Navbar warm gradient */
+.nav-warm {
+  background: linear-gradient(135deg, #7d381c 0%, #a14722 40%, #c2582a 100%);
+}

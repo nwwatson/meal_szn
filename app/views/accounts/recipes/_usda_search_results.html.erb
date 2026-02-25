@@ -1,7 +1,7 @@
 <% if local_assigns[:error] && error.present? %>
   <p class="text-sm text-red-600"><%= error %></p>
 <% elsif results.empty? %>
-  <p class="text-sm text-gray-500">No results found. Try a different search term.</p>
+  <p class="text-sm text-warm-500">No results found. Try a different search term.</p>
 <% else %>
   <div class="space-y-2 max-h-64 overflow-y-auto">
     <% results.first(10).each do |food| %>
@@ -14,7 +14,7 @@
         <% when 1005 then nutrients[:carbs] = fn["value"] || fn["amount"] %>
         <% end %>
       <% end %>
-      <label data-result-card class="block border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors">
+      <label data-result-card class="block border border-warm-200 rounded-lg p-3 cursor-pointer hover:bg-warm-50 transition-colors">
         <div class="flex items-start gap-3">
           <input type="radio"
                  name="usda_result"
@@ -22,8 +22,8 @@
                  data-fdc-id="<%= food["fdcId"] %>"
                  data-action="usda-search#select" />
           <div>
-            <p class="font-medium text-sm text-gray-900"><%= food["description"] %></p>
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="font-medium text-sm text-warm-900"><%= food["description"] %></p>
+            <p class="text-xs text-warm-500 mt-1">
               Per 100g:
               Cal <%= nutrients[:calories]&.round %>
               | Fat <%= nutrients[:fat]&.round(1) %>g

@@ -55,6 +55,31 @@ All primary keys are string UUIDs. Key models:
 
 Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionController::API` (no views). Recipes expose `to_api_response` and `to_meal_planning_response` serialization methods directly on the model.
 
+### Design System
+
+Defined in `app/assets/tailwind/application.css` using Tailwind v4 `@theme` block.
+
+**Fonts** (Google Fonts, loaded in both layouts):
+- `font-display` — Bitter (slab-serif, headings)
+- `font-sans` (default body) — Nunito Sans
+
+**Color tokens** — use these instead of raw Tailwind colors:
+- `primary-*` (50–900) — Terracotta. Buttons, links, navbar, active states.
+- `accent-*` (50–900) — Saffron/golden. Secondary CTAs, highlights.
+- `warm-*` (50–900) — Warm neutrals. Text, borders, backgrounds. Replaces gray.
+- `red-*`, `green-*`, `yellow-*` — kept as standard Tailwind for alerts, success, warnings.
+
+**Custom CSS classes:**
+- `.bg-warm-gradient` — warm body background (cream→peach gradient)
+- `.card-warm` — frosted glass card with warm shadow
+- `.nav-warm` — navbar gradient (dark→light terracotta)
+
+**Conventions:**
+- All page headings (`h1`, `h2`) use `font-display font-bold`
+- Never use raw `emerald-*` or `gray-*` — use `primary-*` and `warm-*` tokens
+- Public layout uses `.card-warm` for auth forms
+- Body background uses `.bg-warm-gradient`, not flat color
+
 ## Key Environment Variables
 
 - `MULTI_TENANT` — enables multi-tenant mode (accounts created via signup flow)

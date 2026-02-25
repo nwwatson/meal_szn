@@ -3,15 +3,15 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="flex justify-between items-center mb-8">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900">Meal Plans</h1>
-      <p class="text-gray-600 mt-1">Organize your weekly meals</p>
+      <h1 class="text-3xl font-display font-bold text-warm-900">Meal Plans</h1>
+      <p class="text-warm-600 mt-1">Organize your weekly meals</p>
     </div>
-    <%= link_to "New Meal Plan", new_meal_plan_path, class: "bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium" %>
+    <%= link_to "New Meal Plan", new_meal_plan_path, class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium" %>
   </div>
 
   <% if @current_plans.any? %>
     <div class="mb-8">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Current</h2>
+      <h2 class="text-lg font-semibold text-warm-900 mb-4">Current</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @current_plans.each do |plan| %>
           <%= render "meal_plan_card", plan: plan, highlight: true %>
@@ -22,7 +22,7 @@
 
   <% if @upcoming_plans.any? %>
     <div class="mb-8">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Upcoming</h2>
+      <h2 class="text-lg font-semibold text-warm-900 mb-4">Upcoming</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @upcoming_plans.each do |plan| %>
           <%= render "meal_plan_card", plan: plan, highlight: false %>
@@ -33,7 +33,7 @@
 
   <% if @past_plans.any? %>
     <div class="mb-8">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Past</h2>
+      <h2 class="text-lg font-semibold text-warm-900 mb-4">Past</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @past_plans.each do |plan| %>
           <%= render "meal_plan_card", plan: plan, highlight: false %>
@@ -44,13 +44,13 @@
 
   <% if @current_plans.empty? && @upcoming_plans.empty? && @past_plans.empty? %>
     <div class="bg-white rounded-lg shadow px-6 py-12 text-center">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="mx-auto h-12 w-12 text-warm-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
       </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900">No meal plans yet</h3>
-      <p class="mt-1 text-sm text-gray-500">Get started by creating your first meal plan.</p>
+      <h3 class="mt-2 text-sm font-medium text-warm-900">No meal plans yet</h3>
+      <p class="mt-1 text-sm text-warm-500">Get started by creating your first meal plan.</p>
       <div class="mt-6">
-        <%= link_to "Create Meal Plan", new_meal_plan_path, class: "bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors" %>
+        <%= link_to "Create Meal Plan", new_meal_plan_path, class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors" %>
       </div>
     </div>
   <% end %>

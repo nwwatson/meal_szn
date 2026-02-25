@@ -2,8 +2,8 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">Welcome to <%= Current.account.name %></h1>
-    <p class="text-gray-600 mt-1">Manage your recipes and meal plans</p>
+    <h1 class="text-3xl font-display font-bold text-warm-900">Welcome to <%= Current.account.name %></h1>
+    <p class="text-warm-600 mt-1">Manage your recipes and meal plans</p>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -11,15 +11,15 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex items-center">
         <div class="flex-shrink-0">
-          <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
           </div>
         </div>
         <div class="ml-4">
-          <p class="text-sm font-medium text-gray-500">Total Recipes</p>
-          <p class="text-2xl font-bold text-gray-900"><%= Current.account.recipes.count %></p>
+          <p class="text-sm font-medium text-warm-500">Total Recipes</p>
+          <p class="text-2xl font-display font-bold text-warm-900"><%= Current.account.recipes.count %></p>
         </div>
       </div>
     </div>
@@ -28,15 +28,15 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex items-center">
         <div class="flex-shrink-0">
-          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-12 h-12 bg-accent-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
             </svg>
           </div>
         </div>
         <div class="ml-4">
-          <p class="text-sm font-medium text-gray-500">Categories</p>
-          <p class="text-2xl font-bold text-gray-900"><%= Recipe.categories.keys.count %></p>
+          <p class="text-sm font-medium text-warm-500">Categories</p>
+          <p class="text-2xl font-display font-bold text-warm-900"><%= Recipe.categories.keys.count %></p>
         </div>
       </div>
     </div>
@@ -45,10 +45,10 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-500">Quick Actions</p>
-          <p class="text-lg font-semibold text-gray-900 mt-1">Add New Recipe</p>
+          <p class="text-sm font-medium text-warm-500">Quick Actions</p>
+          <p class="text-lg font-semibold text-warm-900 mt-1">Add New Recipe</p>
         </div>
-        <%= link_to new_recipe_path, class: "bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors" do %>
+        <%= link_to new_recipe_path, class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors" do %>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
@@ -59,52 +59,52 @@
 
   <!-- Current Meal Plan -->
   <div class="bg-white rounded-lg shadow mb-8">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-      <h2 class="text-lg font-semibold text-gray-900">Current Meal Plan</h2>
-      <%= link_to "All Plans", meal_plans_path, class: "text-emerald-600 hover:text-emerald-700 text-sm font-medium" %>
+    <div class="px-6 py-4 border-b border-warm-200 flex justify-between items-center">
+      <h2 class="text-lg font-semibold text-warm-900">Current Meal Plan</h2>
+      <%= link_to "All Plans", meal_plans_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
     </div>
 
     <% if @current_meal_plan %>
       <div class="p-6">
         <div class="flex justify-between items-start mb-4">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900"><%= @current_meal_plan.name %></h3>
-            <p class="text-sm text-gray-500">
+            <h3 class="text-lg font-semibold text-warm-900"><%= @current_meal_plan.name %></h3>
+            <p class="text-sm text-warm-500">
               <%= @current_meal_plan.start_date.strftime("%b %-d") %> - <%= @current_meal_plan.end_date.strftime("%b %-d, %Y") %>
             </p>
           </div>
-          <%= link_to "View Plan", meal_plan_path(@current_meal_plan), class: "bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium" %>
+          <%= link_to "View Plan", meal_plan_path(@current_meal_plan), class: "bg-primary-600 text-white px-3 py-1.5 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium" %>
         </div>
 
         <% today = @current_meal_plan.days.find { |d| d.date == Date.current } %>
         <% if today && today.meals.any? %>
-          <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Today's Meals</h4>
+          <h4 class="text-sm font-semibold text-warm-500 uppercase tracking-wider mb-2">Today's Meals</h4>
           <ul class="space-y-1">
             <% today.meals.each do |meal| %>
               <li class="flex items-center justify-between text-sm">
                 <span>
-                  <span class="text-gray-500 capitalize"><%= meal.meal_type %>:</span>
-                  <%= link_to meal.recipe.title, recipe_path(meal.recipe), class: "text-gray-900 hover:text-emerald-600" %>
+                  <span class="text-warm-500 capitalize"><%= meal.meal_type %>:</span>
+                  <%= link_to meal.recipe.title, recipe_path(meal.recipe), class: "text-warm-900 hover:text-primary-600" %>
                 </span>
                 <% if meal.recipe.nutrition_data %>
-                  <span class="text-gray-400"><%= meal.calories %> cal</span>
+                  <span class="text-warm-400"><%= meal.calories %> cal</span>
                 <% end %>
               </li>
             <% end %>
           </ul>
         <% else %>
-          <p class="text-sm text-gray-400 italic">No meals planned for today.</p>
+          <p class="text-sm text-warm-400 italic">No meals planned for today.</p>
         <% end %>
       </div>
     <% else %>
       <div class="px-6 py-8 text-center">
-        <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-10 w-10 text-warm-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No active meal plan</h3>
-        <p class="mt-1 text-sm text-gray-500">Create a meal plan to organize your weekly meals.</p>
+        <h3 class="mt-2 text-sm font-medium text-warm-900">No active meal plan</h3>
+        <p class="mt-1 text-sm text-warm-500">Create a meal plan to organize your weekly meals.</p>
         <div class="mt-4">
-          <%= link_to "Create Meal Plan", new_meal_plan_path, class: "bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm" %>
+          <%= link_to "Create Meal Plan", new_meal_plan_path, class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm" %>
         </div>
       </div>
     <% end %>
@@ -112,20 +112,20 @@
 
   <!-- Recent Recipes -->
   <div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-      <h2 class="text-lg font-semibold text-gray-900">Recent Recipes</h2>
-      <%= link_to "View All", recipes_path, class: "text-emerald-600 hover:text-emerald-700 text-sm font-medium" %>
+    <div class="px-6 py-4 border-b border-warm-200 flex justify-between items-center">
+      <h2 class="text-lg font-semibold text-warm-900">Recent Recipes</h2>
+      <%= link_to "View All", recipes_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
     </div>
 
     <% if @recent_recipes&.any? %>
-      <ul class="divide-y divide-gray-200">
+      <ul class="divide-y divide-warm-200">
         <% @recent_recipes.each do |recipe| %>
-          <li class="px-6 py-4 hover:bg-gray-50">
+          <li class="px-6 py-4 hover:bg-warm-50">
             <%= link_to recipe_path(recipe), class: "flex items-center justify-between" do %>
               <div>
-                <p class="font-medium text-gray-900"><%= recipe.title %></p>
-                <p class="text-sm text-gray-500">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                <p class="font-medium text-warm-900"><%= recipe.title %></p>
+                <p class="text-sm text-warm-500">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warm-100 text-warm-800">
                     <%= recipe.category.titleize %>
                   </span>
                   <% if recipe.nutrition_data %>
@@ -133,7 +133,7 @@
                   <% end %>
                 </p>
               </div>
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-warm-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
               </svg>
             <% end %>
@@ -142,13 +142,13 @@
       </ul>
     <% else %>
       <div class="px-6 py-12 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-warm-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No recipes yet</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by adding your first recipe.</p>
+        <h3 class="mt-2 text-sm font-medium text-warm-900">No recipes yet</h3>
+        <p class="mt-1 text-sm text-warm-500">Get started by adding your first recipe.</p>
         <div class="mt-6">
-          <%= link_to "Add Recipe", new_recipe_path, class: "bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors" %>
+          <%= link_to "Add Recipe", new_recipe_path, class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors" %>
         </div>
       </div>
     <% end %>

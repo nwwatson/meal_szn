@@ -1,63 +1,63 @@
 <div class="w-full max-w-2xl mx-auto">
-  <h1 class="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+  <h1 class="text-2xl font-display font-bold text-warm-900 mb-6">Settings</h1>
 
   <%= form_with model: @settings, url: settings_path, method: :patch, class: "space-y-8" do |f| %>
     <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Unit System</h2>
-      <p class="text-sm text-gray-600 mb-4">Choose which unit system appears first in recipe ingredient dropdowns.</p>
+      <h2 class="text-lg font-semibold text-warm-900 mb-4">Unit System</h2>
+      <p class="text-sm text-warm-600 mb-4">Choose which unit system appears first in recipe ingredient dropdowns.</p>
       <div class="flex gap-6">
         <label class="flex items-center gap-2 cursor-pointer">
-          <%= f.radio_button :unit_system, "standard", class: "text-emerald-600 focus:ring-emerald-500" %>
-          <span class="text-sm font-medium text-gray-700">Standard</span>
-          <span class="text-xs text-gray-500">(cups, tbsp, oz, lb)</span>
+          <%= f.radio_button :unit_system, "standard", class: "text-primary-600 focus:ring-primary-500" %>
+          <span class="text-sm font-medium text-warm-700">Standard</span>
+          <span class="text-xs text-warm-500">(cups, tbsp, oz, lb)</span>
         </label>
         <label class="flex items-center gap-2 cursor-pointer">
-          <%= f.radio_button :unit_system, "metric", class: "text-emerald-600 focus:ring-emerald-500" %>
-          <span class="text-sm font-medium text-gray-700">Metric</span>
-          <span class="text-xs text-gray-500">(ml, l, g, kg)</span>
+          <%= f.radio_button :unit_system, "metric", class: "text-primary-600 focus:ring-primary-500" %>
+          <span class="text-sm font-medium text-warm-700">Metric</span>
+          <span class="text-xs text-warm-500">(ml, l, g, kg)</span>
         </label>
       </div>
     </div>
 
     <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Timezone</h2>
+      <h2 class="text-lg font-semibold text-warm-900 mb-4">Timezone</h2>
       <div>
-        <%= f.label :timezone, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= f.time_zone_select :timezone, nil, { default: @settings.timezone }, class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" %>
+        <%= f.label :timezone, class: "block text-sm font-medium text-warm-700 mb-1" %>
+        <%= f.time_zone_select :timezone, nil, { default: @settings.timezone }, class: "w-full px-4 py-2 border border-warm-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" %>
       </div>
     </div>
 
     <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Email Notifications</h2>
+      <h2 class="text-lg font-semibold text-warm-900 mb-4">Email Notifications</h2>
       <div>
-        <%= f.label :email_frequency, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= f.select :email_frequency, User::Settings.email_frequencies.keys.map { |k| [k.titleize, k] }, {}, class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" %>
+        <%= f.label :email_frequency, class: "block text-sm font-medium text-warm-700 mb-1" %>
+        <%= f.select :email_frequency, User::Settings.email_frequencies.keys.map { |k| [k.titleize, k] }, {}, class: "w-full px-4 py-2 border border-warm-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" %>
       </div>
     </div>
 
     <div class="flex gap-4">
-      <%= f.submit "Save Settings", class: "bg-emerald-600 text-white py-2 px-6 rounded-lg hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 font-medium transition-colors cursor-pointer" %>
+      <%= f.submit "Save Settings", class: "bg-primary-600 text-white py-2 px-6 rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 font-medium transition-colors cursor-pointer" %>
     </div>
   <% end %>
 
   <% if Current.user.admin? %>
     <%= form_with model: @account, url: settings_path, method: :patch, class: "space-y-8 mt-8" do |f| %>
       <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Account Defaults</h2>
-        <p class="text-sm text-gray-600 mb-4">Default diet and calorie target for new dietary profiles.</p>
+        <h2 class="text-lg font-semibold text-warm-900 mb-4">Account Defaults</h2>
+        <p class="text-sm text-warm-600 mb-4">Default diet and calorie target for new dietary profiles.</p>
         <div class="space-y-4">
           <div>
-            <%= f.label :default_diet_name, "Default Diet", class: "block text-sm font-medium text-gray-700 mb-1" %>
-            <%= f.select :default_diet_name, DietRegistry.diet_names.map { |n| [n, n] }, { include_blank: "No default" }, class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" %>
+            <%= f.label :default_diet_name, "Default Diet", class: "block text-sm font-medium text-warm-700 mb-1" %>
+            <%= f.select :default_diet_name, DietRegistry.diet_names.map { |n| [n, n] }, { include_blank: "No default" }, class: "w-full px-4 py-2 border border-warm-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" %>
           </div>
           <div>
-            <%= f.label :default_daily_calories_target, "Default Daily Calories", class: "block text-sm font-medium text-gray-700 mb-1" %>
-            <%= f.number_field :default_daily_calories_target, class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500", placeholder: "e.g., 2000", min: 1 %>
+            <%= f.label :default_daily_calories_target, "Default Daily Calories", class: "block text-sm font-medium text-warm-700 mb-1" %>
+            <%= f.number_field :default_daily_calories_target, class: "w-full px-4 py-2 border border-warm-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500", placeholder: "e.g., 2000", min: 1 %>
           </div>
         </div>
       </div>
       <div class="flex gap-4">
-        <%= f.submit "Save Account Defaults", class: "bg-emerald-600 text-white py-2 px-6 rounded-lg hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 font-medium transition-colors cursor-pointer" %>
+        <%= f.submit "Save Account Defaults", class: "bg-primary-600 text-white py-2 px-6 rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 font-medium transition-colors cursor-pointer" %>
       </div>
     <% end %>
   <% end %>
@@ -65,10 +65,10 @@
   <div class="bg-white rounded-lg shadow p-6 mt-8">
     <div class="flex justify-between items-center">
       <div>
-        <h2 class="text-lg font-semibold text-gray-900">Family Dietary Profiles</h2>
-        <p class="text-sm text-gray-600 mt-1">Manage dietary profiles for your family members.</p>
+        <h2 class="text-lg font-semibold text-warm-900">Family Dietary Profiles</h2>
+        <p class="text-sm text-warm-600 mt-1">Manage dietary profiles for your family members.</p>
       </div>
-      <%= link_to "Manage Profiles", dietary_profiles_path, class: "bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium" %>
+      <%= link_to "Manage Profiles", dietary_profiles_path, class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium" %>
     </div>
   </div>
 </div>
