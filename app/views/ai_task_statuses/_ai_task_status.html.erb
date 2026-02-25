@@ -1,0 +1,5 @@
+<%= turbo_frame_tag "ai_task_status_#{ai_task_status.id}" do %>
+  <div data-status="<%= ai_task_status.status %>" data-progress="<%= ai_task_status.progress_percentage %>">
+    <%= ai_task_status.status.humanize %> — <%= ai_task_status.progress_percentage %>%
+  </div>
+<% end %>

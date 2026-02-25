@@ -1,0 +1,29 @@
+pending_task:
+  id: ai_task_pending_one
+  account_id: acct_test_one
+  status: 0
+  task_type: recipe_import
+  progress_percentage: 0
+
+processing_task:
+  id: ai_task_processing_one
+  account_id: acct_test_one
+  status: 1
+  task_type: meal_plan_generation
+  progress_percentage: 50
+
+completed_task:
+  id: ai_task_completed_one
+  account_id: acct_test_one
+  status: 2
+  task_type: recipe_import
+  result: '{"recipe_id": "abc123"}'
+  progress_percentage: 100
+
+failed_task:
+  id: ai_task_failed_one
+  account_id: acct_test_one
+  status: 3
+  task_type: recipe_import
+  error_message: "API rate limit exceeded"
+  progress_percentage: 25

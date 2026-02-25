@@ -68,6 +68,19 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 
 **Error handling:** Retries 3× with exponential backoff (1s/2s/4s) on rate limits, server errors, and timeouts. Custom exceptions: `Ai::Client::ApiError`, `RateLimitError`, `TimeoutError`, `AuthenticationError`.
 
+### AI Background Jobs
+
+`AiBaseJob` (`app/jobs/ai_base_job.rb`) — base class for all AI jobs. Runs on dedicated `ai` queue (configured in `config/queue.yml`). Manages `AiTaskStatus` lifecycle automatically: pending → processing → completed/failed.
+
+**`AiTaskStatus`** model tracks async AI job progress:
+- `status` enum: `pending`, `processing`, `completed`, `failed` (with validated transitions)
+- `result` JSON column for AI output, `error_message` for failures
+- `progress_percentage` (0–100) for incremental updates
+- Turbo Stream broadcasts on status changes to `[account, :ai_task_statuses]` stream
+- Account-scoped with string UUID PK
+
+**Subclassing pattern:** Implement `#execute(**args)` returning a Hash. Call `update_progress(n)` for incremental updates. Error handling and status transitions are automatic.
+
 ### Design System
 
 Defined in `app/assets/tailwind/application.css` using Tailwind v4 `@theme` block.
