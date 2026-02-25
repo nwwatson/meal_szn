@@ -6,7 +6,8 @@
     <%= link_to "&larr; Back to Recipes".html_safe, recipes_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
   </div>
 
-  <div class="bg-white rounded-lg shadow">
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <%= recipe_show_banner(@recipe) %>
     <div class="p-6 border-b border-warm-200">
       <div class="flex justify-between items-start">
         <div>

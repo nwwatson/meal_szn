@@ -2,6 +2,7 @@ class Recipe < ApplicationRecord
   include Identifiable
 
   belongs_to :account
+  has_one_attached :image
   has_many :ingredients, -> { order(:display_order) }, dependent: :destroy
   has_many :instructions, class_name: "RecipeInstruction", dependent: :destroy
   has_one :nutrition_data, class_name: "RecipeNutritionData", dependent: :destroy

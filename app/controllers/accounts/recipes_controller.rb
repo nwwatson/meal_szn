@@ -4,7 +4,7 @@ class Accounts::RecipesController < ApplicationController
 
   def index
     @recipes = Current.account.recipes
-      .includes(:nutrition_data, :tags)
+      .includes(:nutrition_data, :tags, image_attachment: :blob)
       .by_category(params[:category])
       .by_tags(params[:tags])
       .order(created_at: :desc)
@@ -161,6 +161,7 @@ class Accounts::RecipesController < ApplicationController
       :servings,
       :prep_time,
       :cook_time,
+      :image,
       ingredients_attributes: %i[id name quantity unit display_order _destroy],
       instructions_attributes: %i[id step_number instruction _destroy],
       nutrition_data_attributes: %i[

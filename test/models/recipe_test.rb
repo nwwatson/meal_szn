@@ -169,6 +169,19 @@ class RecipeTest < ActiveSupport::TestCase
     assert_includes response[:tags], "keto"
   end
 
+  test "can have an attached image" do
+    recipe = recipes(:one)
+    assert_respond_to recipe, :image
+    assert_not recipe.image.attached?
+
+    recipe.image.attach(
+      io: StringIO.new("fake image data"),
+      filename: "test.jpg",
+      content_type: "image/jpeg"
+    )
+    assert recipe.image.attached?
+  end
+
   test "to_meal_planning_response includes tags" do
     recipe = recipes(:one)
     response = recipe.to_meal_planning_response

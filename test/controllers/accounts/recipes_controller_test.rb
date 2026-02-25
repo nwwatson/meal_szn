@@ -265,6 +265,58 @@ class Accounts::RecipesControllerTest < ActionDispatch::IntegrationTest
     assert_response :redirect
   end
 
+  test "should create recipe with image" do
+    sign_in_as(@session)
+
+    image = fixture_file_upload("test_image.jpg", "image/jpeg")
+
+    assert_difference "Recipe.count" do
+      post "#{account_path_prefix}/recipes", params: {
+        recipe: {
+          title: "Recipe With Photo",
+          category: "dinner",
+          servings: 2,
+          image: image
+        }
+      }
+    end
+
+    assert_response :redirect
+    new_recipe = Recipe.order(created_at: :desc).first
+    assert new_recipe.image.attached?
+  end
+
+  test "should update recipe with image" do
+    sign_in_as(@session)
+
+    assert_not @recipe.image.attached?
+
+    assert_difference "ActiveStorage::Attachment.count" do
+      patch "#{account_path_prefix}/recipes/#{@recipe.id}", params: {
+        recipe: {
+          title: @recipe.title,
+          image: fixture_file_upload("test_image.jpg", "image/jpeg")
+        }
+      }
+    end
+
+    assert_response :redirect
+  end
+
+  test "index shows recipe card banners" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes"
+    assert_response :success
+    assert_select ".bg-gradient-to-br"
+  end
+
+  test "show displays recipe banner" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes/#{@recipe.id}"
+    assert_response :success
+    assert_select ".bg-gradient-to-br"
+  end
+
   test "new recipe form contains nutrition mode toggle" do
     sign_in_as(@session)
     get "#{account_path_prefix}/recipes/new"
