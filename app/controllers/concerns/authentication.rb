@@ -121,7 +121,7 @@ module Authentication
   end
 
   def store_return_url
-    session[:return_to] = request.fullpath if request.get?
+    session[:return_to] = request.fullpath if request.get? || request.head?
   end
 
   def return_url
