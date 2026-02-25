@@ -28,12 +28,17 @@
 
   <% if @recipes.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <% @recipes.each do |recipe| %>
-        <%= link_to recipe_path(recipe), class: "block bg-white rounded-lg shadow hover:shadow-md transition-shadow" do %>
-          <div class="p-6">
+      <% @recipes.each_with_index do |recipe, index| %>
+        <%= link_to recipe_path(recipe), class: "block bg-white rounded-lg shadow group hover:shadow-lg hover:-translate-y-1 transition-all duration-200 overflow-hidden #{'md:col-span-2 lg:col-span-2' if index == 0}" do %>
+          <% if index == 0 %>
+            <%= recipe_card_banner(recipe, height: "h-48") %>
+          <% else %>
+            <%= recipe_card_banner(recipe) %>
+          <% end %>
+          <div class="p-5">
             <div class="flex justify-between items-start mb-2">
-              <h2 class="text-lg font-semibold text-warm-900"><%= recipe.title %></h2>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warm-100 text-warm-800">
+              <h2 class="text-lg font-semibold text-warm-900 group-hover:text-primary-700 transition-colors"><%= recipe.title %></h2>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warm-100 text-warm-800 shrink-0 ml-2">
                 <%= recipe.category.titleize %>
               </span>
             </div>
@@ -52,7 +57,7 @@
               <% end %>
             </div>
             <% if recipe.tags.any? %>
-              <div class="flex gap-1 mt-2 flex-wrap">
+              <div class="flex gap-1 mt-3 flex-wrap">
                 <% recipe.tags.each do |tag| %>
                   <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700"><%= tag.name %></span>
                 <% end %>
