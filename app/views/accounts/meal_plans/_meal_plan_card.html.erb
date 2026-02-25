@@ -1,14 +1,14 @@
-<%= link_to meal_plan_path(plan), class: "block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 #{highlight ? 'ring-2 ring-emerald-500' : ''}" do %>
+<%= link_to meal_plan_path(plan), class: "block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 #{highlight ? 'ring-2 ring-primary-500' : ''}" do %>
   <div class="flex justify-between items-start mb-2">
-    <h3 class="text-lg font-semibold text-gray-900"><%= plan.name || "Untitled Plan" %></h3>
+    <h3 class="text-lg font-semibold text-warm-900"><%= plan.name || "Untitled Plan" %></h3>
     <% if plan.current? %>
-      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Active</span>
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">Active</span>
     <% end %>
   </div>
-  <p class="text-sm text-gray-500 mb-3">
+  <p class="text-sm text-warm-500 mb-3">
     <%= plan.start_date.strftime("%b %-d") %> - <%= plan.end_date.strftime("%b %-d, %Y") %>
   </p>
-  <div class="flex items-center gap-4 text-sm text-gray-600">
+  <div class="flex items-center gap-4 text-sm text-warm-600">
     <span><%= plan.duration_days %> days</span>
     <span><%= plan.days.sum { |d| d.meals.size } %> meals</span>
     <% if plan.daily_calories_target %>

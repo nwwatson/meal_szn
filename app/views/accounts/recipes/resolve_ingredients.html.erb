@@ -1,7 +1,7 @@
 <div class="max-w-4xl mx-auto py-8 px-4">
   <div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Match Ingredients</h1>
-    <p class="mt-2 text-gray-600">
+    <h1 class="text-2xl font-display font-bold text-warm-900">Match Ingredients</h1>
+    <p class="mt-2 text-warm-600">
       Some ingredients in "<%= @recipe.title %>" couldn't be automatically matched to nutrition data.
       Search the USDA database to find the right match for each one.
     </p>
@@ -11,7 +11,7 @@
     <% @unresolved.each do |ingredient| %>
       <div class="bg-white rounded-lg shadow p-6" data-controller="usda-search" data-usda-search-url-value="<%= search_usda_recipes_path %>">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-medium text-gray-900">
+          <h3 class="text-lg font-medium text-warm-900">
             <%= ingredient.display_text %>
           </h3>
         </div>
@@ -20,11 +20,11 @@
           <input type="text"
                  value="<%= ingredient.name %>"
                  data-usda-search-target="query"
-                 class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                 class="flex-1 px-3 py-2 border border-warm-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                  placeholder="Search USDA database..." />
           <button type="button"
                   data-action="usda-search#search"
-                  class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium">
+                  class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium">
             Search
           </button>
         </div>
@@ -41,10 +41,10 @@
 
     <div class="flex gap-4 items-center">
       <button type="submit"
-              class="bg-emerald-600 text-white py-2 px-6 rounded-lg hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 font-medium transition-colors">
+              class="bg-primary-600 text-white py-2 px-6 rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 font-medium transition-colors">
         Apply Matches & Calculate Nutrition
       </button>
-      <%= link_to "Skip (use manual entry)", edit_recipe_path(@recipe), class: "py-2 px-4 text-gray-700 hover:text-gray-900" %>
+      <%= link_to "Skip (use manual entry)", edit_recipe_path(@recipe), class: "py-2 px-4 text-warm-700 hover:text-warm-900" %>
     </div>
   <% end %>
 </div>

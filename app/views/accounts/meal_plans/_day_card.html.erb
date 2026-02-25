@@ -1,29 +1,29 @@
 <div class="bg-white rounded-lg shadow">
-  <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+  <div class="px-6 py-4 border-b border-warm-200 flex justify-between items-center">
     <div>
-      <h3 class="text-lg font-semibold text-gray-900">
+      <h3 class="text-lg font-semibold text-warm-900">
         Day <%= day.day_number %> - <%= day.date.strftime("%A, %b %-d") %>
       </h3>
     </div>
-    <div class="text-sm text-gray-500">
+    <div class="text-sm text-warm-500">
       <% total = day.meals.sum { |m| m.recipe.nutrition_data&.calories.to_i * m.servings } %>
       <%= total.round %> cal total
     </div>
   </div>
 
-  <div class="divide-y divide-gray-100">
+  <div class="divide-y divide-warm-100">
     <% %w[breakfast lunch dinner snack].each do |meal_type| %>
       <% meals = day.meals.select { |m| m.meal_type == meal_type } %>
       <% if meals.any? %>
         <div class="px-6 py-3">
-          <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2"><%= meal_type.titleize %></h4>
+          <h4 class="text-xs font-semibold text-warm-500 uppercase tracking-wider mb-2"><%= meal_type.titleize %></h4>
           <% meals.each do |meal| %>
             <div class="flex items-center justify-between py-1">
               <div class="flex items-center gap-3">
-                <%= link_to meal.recipe.title, recipe_path(meal.recipe), class: "text-gray-900 hover:text-emerald-600 font-medium" %>
-                <span class="text-sm text-gray-500"><%= meal.servings.to_f == meal.servings.to_i.to_f ? meal.servings.to_i : meal.servings %> serving<%= meal.servings == 1 ? '' : 's' %></span>
+                <%= link_to meal.recipe.title, recipe_path(meal.recipe), class: "text-warm-900 hover:text-primary-600 font-medium" %>
+                <span class="text-sm text-warm-500"><%= meal.servings.to_f == meal.servings.to_i.to_f ? meal.servings.to_i : meal.servings %> serving<%= meal.servings == 1 ? '' : 's' %></span>
                 <% if meal.recipe.nutrition_data %>
-                  <span class="text-sm text-gray-400"><%= meal.calories %> cal</span>
+                  <span class="text-sm text-warm-400"><%= meal.calories %> cal</span>
                 <% end %>
               </div>
               <%= button_to meal_plan_meal_path(meal_plan, meal), method: :delete, class: "text-red-400 hover:text-red-600", data: { turbo_confirm: "Remove this meal?" } do %>
@@ -37,13 +37,13 @@
                 <% participants.each_with_index do |participant, p_idx| %>
                   <% portion = participant.portions.find { |pt| pt.meal_plan_meal_id == meal.id } %>
                   <% if portion %>
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100" data-controller="portion-edit" data-portion-edit-url-value="<%= meal_plan_portion_path(meal_plan, portion) %>">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-warm-100" data-controller="portion-edit" data-portion-edit-url-value="<%= meal_plan_portion_path(meal_plan, portion) %>">
                       <span class="inline-block w-2 h-2 rounded-full" style="background-color: <%= participant_color(p_idx) %>"></span>
-                      <span class="text-gray-700"><%= participant.name %></span>
-                      <button type="button" class="font-medium text-gray-900 hover:text-emerald-600 cursor-pointer" data-action="click->portion-edit#edit" data-portion-edit-target="display">
+                      <span class="text-warm-700"><%= participant.name %></span>
+                      <button type="button" class="font-medium text-warm-900 hover:text-primary-600 cursor-pointer" data-action="click->portion-edit#edit" data-portion-edit-target="display">
                         <%= portion.servings.to_f == portion.servings.to_i.to_f ? portion.servings.to_i : portion.servings %>
                       </button>
-                      <input type="number" step="0.25" min="0.25" max="10" value="<%= portion.servings %>" class="hidden w-16 text-xs border border-gray-300 rounded px-1 py-0" data-portion-edit-target="input" data-action="blur->portion-edit#save keydown.enter->portion-edit#save keydown.escape->portion-edit#cancel">
+                      <input type="number" step="0.25" min="0.25" max="10" value="<%= portion.servings %>" class="hidden w-16 text-xs border border-warm-300 rounded px-1 py-0" data-portion-edit-target="input" data-action="blur->portion-edit#save keydown.enter->portion-edit#save keydown.escape->portion-edit#cancel">
                     </span>
                   <% end %>
                 <% end %>
@@ -55,20 +55,20 @@
     <% end %>
 
     <% if day.meals.empty? %>
-      <div class="px-6 py-4 text-sm text-gray-400 italic">No meals planned for this day.</div>
+      <div class="px-6 py-4 text-sm text-warm-400 italic">No meals planned for this day.</div>
     <% end %>
   </div>
 
   <% if defined?(participants) && participants&.any? && day.meals.any? %>
-    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-      <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Daily Macros by Participant</h4>
+    <div class="px-6 py-4 border-t border-warm-200 bg-warm-50 rounded-b-lg">
+      <h4 class="text-xs font-semibold text-warm-500 uppercase tracking-wider mb-3">Daily Macros by Participant</h4>
       <div class="space-y-2">
         <% participants.each_with_index do |participant, p_idx| %>
           <% totals = participant.daily_totals_for(day) %>
           <% targets = participant.macro_targets %>
           <div class="flex items-center gap-3 text-sm">
             <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background-color: <%= participant_color(p_idx) %>"></span>
-            <span class="font-medium text-gray-900 w-20 truncate"><%= participant.name %></span>
+            <span class="font-medium text-warm-900 w-20 truncate"><%= participant.name %></span>
             <div class="flex gap-4 text-xs">
               <span class="<%= macro_status_class(totals[:calories], targets&.dig(:calories)) %>">
                 Cal: <%= totals[:calories].round %><%= "/#{targets[:calories]}" if targets&.dig(:calories) %>

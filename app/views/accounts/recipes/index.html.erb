@@ -2,14 +2,14 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-900">Recipes</h1>
-    <%= link_to "New Recipe", new_recipe_path, class: "bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 font-medium transition-colors" %>
+    <h1 class="text-3xl font-display font-bold text-warm-900">Recipes</h1>
+    <%= link_to "New Recipe", new_recipe_path, class: "bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 font-medium transition-colors" %>
   </div>
 
   <div class="flex gap-2 mb-6 flex-wrap">
-    <%= link_to "All", recipes_path, class: "px-3 py-1 rounded-full text-sm font-medium #{params[:category].blank? ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+    <%= link_to "All", recipes_path, class: "px-3 py-1 rounded-full text-sm font-medium #{params[:category].blank? ? 'bg-primary-600 text-white' : 'bg-warm-100 text-warm-700 hover:bg-warm-200'}" %>
     <% @categories.each do |label, value, count| %>
-      <%= link_to "#{label} (#{count})", recipes_path(category: value), class: "px-3 py-1 rounded-full text-sm font-medium #{params[:category] == value ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+      <%= link_to "#{label} (#{count})", recipes_path(category: value), class: "px-3 py-1 rounded-full text-sm font-medium #{params[:category] == value ? 'bg-primary-600 text-white' : 'bg-warm-100 text-warm-700 hover:bg-warm-200'}" %>
     <% end %>
   </div>
 
@@ -19,7 +19,7 @@
         <% selected = Array(params[:tags]).include?(tag.id) %>
         <% new_tags = selected ? Array(params[:tags]) - [tag.id] : Array(params[:tags]) + [tag.id] %>
         <%= link_to recipes_path(category: params[:category], tags: new_tags.presence),
-              class: "px-3 py-1 rounded-full text-sm font-medium #{selected ? 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" do %>
+              class: "px-3 py-1 rounded-full text-sm font-medium #{selected ? 'bg-primary-100 text-primary-800 ring-1 ring-primary-600' : 'bg-warm-100 text-warm-700 hover:bg-warm-200'}" do %>
           <%= tag.name %> (<%= tag.recipe_count %>)
         <% end %>
       <% end %>
@@ -32,15 +32,15 @@
         <%= link_to recipe_path(recipe), class: "block bg-white rounded-lg shadow hover:shadow-md transition-shadow" do %>
           <div class="p-6">
             <div class="flex justify-between items-start mb-2">
-              <h2 class="text-lg font-semibold text-gray-900"><%= recipe.title %></h2>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+              <h2 class="text-lg font-semibold text-warm-900"><%= recipe.title %></h2>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warm-100 text-warm-800">
                 <%= recipe.category.titleize %>
               </span>
             </div>
             <% if recipe.description.present? %>
-              <p class="text-gray-600 text-sm mb-3 line-clamp-2"><%= recipe.description %></p>
+              <p class="text-warm-600 text-sm mb-3 line-clamp-2"><%= recipe.description %></p>
             <% end %>
-            <div class="flex items-center gap-4 text-sm text-gray-500">
+            <div class="flex items-center gap-4 text-sm text-warm-500">
               <% if recipe.total_time > 0 %>
                 <span><%= recipe.total_time %> min</span>
               <% end %>
@@ -54,7 +54,7 @@
             <% if recipe.tags.any? %>
               <div class="flex gap-1 mt-2 flex-wrap">
                 <% recipe.tags.each do |tag| %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700"><%= tag.name %></span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700"><%= tag.name %></span>
                 <% end %>
               </div>
             <% end %>
@@ -63,9 +63,9 @@
       <% end %>
     </div>
   <% else %>
-    <div class="text-center py-12 bg-gray-50 rounded-lg">
-      <p class="text-gray-500 mb-4">No recipes found</p>
-      <%= link_to "Add your first recipe", new_recipe_path, class: "text-emerald-600 hover:text-emerald-700 font-medium" %>
+    <div class="text-center py-12 bg-warm-50 rounded-lg">
+      <p class="text-warm-500 mb-4">No recipes found</p>
+      <%= link_to "Add your first recipe", new_recipe_path, class: "text-primary-600 hover:text-primary-700 font-medium" %>
     </div>
   <% end %>
 </div>

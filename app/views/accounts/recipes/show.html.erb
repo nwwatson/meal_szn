@@ -3,67 +3,67 @@
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
   <% if @meal_plans&.any? %>data-controller="add-to-meal-plan" data-add-to-meal-plan-recipe-id-value="<%= @recipe.id %>" data-add-to-meal-plan-base-url-value="/<%= Current.account.external_account_id %>"<% end %>>
   <div class="mb-6">
-    <%= link_to "&larr; Back to Recipes".html_safe, recipes_path, class: "text-emerald-600 hover:text-emerald-700 text-sm font-medium" %>
+    <%= link_to "&larr; Back to Recipes".html_safe, recipes_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
   </div>
 
   <div class="bg-white rounded-lg shadow">
-    <div class="p-6 border-b border-gray-200">
+    <div class="p-6 border-b border-warm-200">
       <div class="flex justify-between items-start">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900"><%= @recipe.title %></h1>
+          <h1 class="text-3xl font-display font-bold text-warm-900"><%= @recipe.title %></h1>
           <div class="flex items-center gap-3 mt-2">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
               <%= @recipe.category.titleize %>
             </span>
             <% if @recipe.total_time > 0 %>
-              <span class="text-sm text-gray-500"><%= @recipe.total_time %> min total</span>
+              <span class="text-sm text-warm-500"><%= @recipe.total_time %> min total</span>
             <% end %>
             <% if @recipe.servings %>
-              <span class="text-sm text-gray-500"><%= @recipe.servings %> servings</span>
+              <span class="text-sm text-warm-500"><%= @recipe.servings %> servings</span>
             <% end %>
           </div>
           <% if @recipe.tags.any? %>
             <div class="flex gap-1.5 mt-2 flex-wrap">
               <% @recipe.tags.each do |tag| %>
                 <%= link_to tag.name, recipes_path(tags: [tag.id]),
-                      class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100" %>
+                      class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 hover:bg-primary-100" %>
               <% end %>
             </div>
           <% end %>
         </div>
         <div class="flex gap-2">
           <% if @meal_plans&.any? %>
-            <button type="button" data-action="add-to-meal-plan#open" class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 text-sm font-medium">Add to Meal Plan</button>
+            <button type="button" data-action="add-to-meal-plan#open" class="bg-accent-50 text-accent-600 px-3 py-1.5 rounded-lg hover:bg-accent-100 text-sm font-medium">Add to Meal Plan</button>
           <% end %>
-          <%= link_to "Edit", edit_recipe_path(@recipe), class: "bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 text-sm font-medium" %>
+          <%= link_to "Edit", edit_recipe_path(@recipe), class: "bg-warm-100 text-warm-700 px-3 py-1.5 rounded-lg hover:bg-warm-200 text-sm font-medium" %>
           <%= button_to "Delete", recipe_path(@recipe), method: :delete, class: "bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 text-sm font-medium", data: { turbo_confirm: "Are you sure?" } %>
         </div>
       </div>
       <% if @recipe.description.present? %>
-        <p class="text-gray-600 mt-3"><%= @recipe.description %></p>
+        <p class="text-warm-600 mt-3"><%= @recipe.description %></p>
       <% end %>
     </div>
 
     <% if @recipe.nutrition_data %>
-      <div class="p-6 border-b border-gray-200 bg-gray-50">
-        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Nutrition per Serving</h2>
+      <div class="p-6 border-b border-warm-200 bg-warm-50">
+        <h2 class="text-sm font-semibold text-warm-500 uppercase tracking-wider mb-3">Nutrition per Serving</h2>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div><span class="text-2xl font-bold text-gray-900"><%= @recipe.nutrition_data.calories %></span><br><span class="text-xs text-gray-500">Calories</span></div>
-          <div><span class="text-2xl font-bold text-gray-900"><%= @recipe.nutrition_data.fat %>g</span><br><span class="text-xs text-gray-500">Fat</span></div>
-          <div><span class="text-2xl font-bold text-gray-900"><%= @recipe.nutrition_data.protein %>g</span><br><span class="text-xs text-gray-500">Protein</span></div>
-          <div><span class="text-2xl font-bold text-gray-900"><%= @recipe.nutrition_data.net_carbs %>g</span><br><span class="text-xs text-gray-500">Net Carbs</span></div>
-          <div><span class="text-2xl font-bold text-gray-900"><%= @recipe.nutrition_data.fiber %>g</span><br><span class="text-xs text-gray-500">Fiber</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.calories %></span><br><span class="text-xs text-warm-500">Calories</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.fat %>g</span><br><span class="text-xs text-warm-500">Fat</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.protein %>g</span><br><span class="text-xs text-warm-500">Protein</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.net_carbs %>g</span><br><span class="text-xs text-warm-500">Net Carbs</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.fiber %>g</span><br><span class="text-xs text-warm-500">Fiber</span></div>
         </div>
       </div>
     <% end %>
 
     <% if @recipe.ingredients.any? %>
-      <div class="p-6 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900 mb-3">Ingredients</h2>
+      <div class="p-6 border-b border-warm-200">
+        <h2 class="text-lg font-semibold text-warm-900 mb-3">Ingredients</h2>
         <ul class="space-y-2">
           <% @recipe.ingredients.each do |ingredient| %>
-            <li class="flex items-center text-gray-700">
-              <span class="w-2 h-2 bg-emerald-400 rounded-full mr-3 flex-shrink-0"></span>
+            <li class="flex items-center text-warm-700">
+              <span class="w-2 h-2 bg-primary-400 rounded-full mr-3 flex-shrink-0"></span>
               <%= ingredient.display_text %>
             </li>
           <% end %>
@@ -72,15 +72,15 @@
     <% end %>
 
     <% if @recipe.instructions.any? %>
-      <div class="p-6 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900 mb-3">Instructions</h2>
+      <div class="p-6 border-b border-warm-200">
+        <h2 class="text-lg font-semibold text-warm-900 mb-3">Instructions</h2>
         <ol class="space-y-4">
           <% @recipe.instructions.each do |instruction| %>
             <li class="flex">
-              <span class="flex-shrink-0 w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-semibold text-sm mr-3">
+              <span class="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-semibold text-sm mr-3">
                 <%= instruction.step_number %>
               </span>
-              <p class="text-gray-700 pt-1"><%= instruction.instruction %></p>
+              <p class="text-warm-700 pt-1"><%= instruction.instruction %></p>
             </li>
           <% end %>
         </ol>
@@ -89,10 +89,10 @@
 
     <% if @recipe.tips.any? %>
       <div class="p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-3">Tips</h2>
+        <h2 class="text-lg font-semibold text-warm-900 mb-3">Tips</h2>
         <ul class="space-y-2">
           <% @recipe.tips.each do |tip| %>
-            <li class="flex items-start text-gray-600 text-sm">
+            <li class="flex items-start text-warm-600 text-sm">
               <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707z"/>
               </svg>
