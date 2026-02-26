@@ -89,13 +89,14 @@ class MealPlanGeneratorTest < ActiveSupport::TestCase
   end
 
   test "skips unknown recipe ids from AI response" do
+    # AI now returns integer indices; 999 is an invalid index not in the mapping
     response = {
-      "days" => [
+      days: [
         {
-          "day_number" => 1,
-          "meals" => [
-            { "meal_type" => "breakfast", "recipe_id" => "nonexistent_id" },
-            { "meal_type" => "dinner", "recipe_id" => recipes(:one).id }
+          day_number: 1,
+          meals: [
+            { meal_type: "breakfast", recipe_id: 999 },
+            { meal_type: "dinner", recipe_id: 1 }
           ]
         }
       ]
@@ -109,13 +110,14 @@ class MealPlanGeneratorTest < ActiveSupport::TestCase
     assert_equal 1, day_one.meals.count
   end
 
-  test "clamps servings to valid range" do
+  test "assigns default servings of 1.0 for all meals" do
+    # Servings are no longer returned by AI — hardcoded to 1.0
     response = {
-      "days" => [
+      days: [
         {
-          "day_number" => 1,
-          "meals" => [
-            { "meal_type" => "dinner", "recipe_id" => recipes(:one).id, "servings" => 50.0 }
+          day_number: 1,
+          meals: [
+            { meal_type: "dinner", recipe_id: 1 }
           ]
         }
       ]
@@ -127,7 +129,7 @@ class MealPlanGeneratorTest < ActiveSupport::TestCase
     generator.generate
 
     meal = @meal_plan.days.find_by(day_number: 1).meals.first
-    assert_equal 10.0, meal.servings.to_f
+    assert_equal 1.0, meal.servings.to_f
   end
 
   test "reports progress via callback" do
@@ -171,9 +173,9 @@ class MealPlanGeneratorTest < ActiveSupport::TestCase
   end
 
   def build_ai_response(plan, meal_types: %w[breakfast lunch dinner snack])
-    salmon = recipes(:one)
-    eggs = recipes(:two)
-    recipe_ids = [ salmon.id, eggs.id ]
+    # AI now returns integer indices (1-based) instead of UUIDs.
+    # RecipeSelector returns eligible recipes; indices 1 and 2 map to the first two.
+    recipe_indices = [ 1, 2 ]
 
     # Use symbol keys to match real Anthropic gem behavior (tool_block.input.to_h returns symbols)
     {
@@ -181,11 +183,10 @@ class MealPlanGeneratorTest < ActiveSupport::TestCase
         {
           day_number: day.day_number,
           meals: meal_types.map do |mt|
-            { meal_type: mt, recipe_id: recipe_ids.sample, servings: 1.0 }
+            { meal_type: mt, recipe_id: recipe_indices.sample }
           end
         }
-      end,
-      reasoning: "Test plan with varied meals"
+      end
     }
   end
 end

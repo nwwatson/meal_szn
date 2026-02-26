@@ -57,7 +57,7 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 
 ### AI Service Layer
 
-`Ai::Client` (`app/services/ai/client.rb`) wraps the Anthropic Claude API via the `anthropic` gem. Configured in `config/initializers/ai.rb` (default model: `claude-sonnet-4-20250514`).
+`Ai::Client` (`app/services/ai/client.rb`) wraps the Anthropic Claude API via the `anthropic` gem. Configured in `config/initializers/ai.rb` (default model: `claude-sonnet-4-20250514`, meal planning model: `claude-haiku-4-5-20251001`).
 
 **Methods:**
 - `chat(messages:, system:, max_tokens:)` — text completion
@@ -67,6 +67,16 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 **Credentials:** `Rails.application.credentials.dig(:ai, :anthropic, :api_key)`
 
 **Error handling:** Retries 3× with exponential backoff (1s/2s/4s) on rate limits, server errors, and timeouts. Custom exceptions: `Ai::Client::ApiError`, `RateLimitError`, `TimeoutError`, `AuthenticationError`.
+
+### AI Meal Plan Generation
+
+`MealPlanGenerator` (`app/services/meal_plan_generator.rb`) orchestrates AI-powered meal plan creation using Haiku 4.5 for cost efficiency. Uses prompt caching (`cache_control: { type: "ephemeral" }`) on the static system prompt. Recipes are sent as integer indices (not UUIDs) to reduce token costs, with `@index_to_id` mapping indices back to UUIDs when populating the plan.
+
+`RecipeSelector` (`app/services/recipe_selector.rb`) pre-filters and ranks recipes before sending to the AI:
+- **Hard exclusion**: Removes recipes from recent past meal plans (adaptive N based on catalog size). Skipped when catalog < 20 recipes.
+- **Soft scoring** (5 weighted factors): usage frequency (30%), recency decay (25%), diet compatibility (20%), category fit (15%), newness bonus (10%)
+- **Category-proportional selection**: Ensures minimum representation (`MIN_PER_CATEGORY = 3`) per active meal type category
+- Accepts `current_date:` override for deterministic testing
 
 ### AI Background Jobs
 

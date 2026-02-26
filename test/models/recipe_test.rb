@@ -91,7 +91,10 @@ class RecipeTest < ActiveSupport::TestCase
 
     assert_equal recipe.id, response[:id]
     assert_equal recipe.title, response[:title]
-    assert_includes response[:url], recipe.account.external_account_id.to_s
+    assert_equal recipe.category, response[:category]
+    assert response[:nutrition_per_serving].present?
+    assert_nil response[:url], "url should not be included in meal planning response"
+    assert_nil response[:ingredients_summary], "ingredients_summary should not be included"
   end
 
   test "has many tags through recipe_tags" do

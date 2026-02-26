@@ -14,16 +14,31 @@ class MealPlanGenerator
 
   MIN_RECIPES_REQUIRED = 3
 
+  SYSTEM_RULES = <<~RULES.freeze
+    You are a meal planning assistant for a family-oriented meal planning app.
+    Your job is to create an optimized weekly meal plan that respects dietary requirements,
+    macro targets, and user preferences.
+
+    RULES:
+    - Only use recipe IDs from the provided catalog
+    - Each meal assignment should have exactly one recipe
+    - Aim for variety: minimize recipe repetition across the week
+    - Match recipes to appropriate meal types (breakfast recipes for breakfast, etc.)
+    - Consider prep/cook time when assigning meals
+    - Target each participant's daily calorie goals by choosing appropriate recipes
+    - These recipes have been pre-selected for variety and dietary fit. Use them all if possible to maximize rotation.
+  RULES
+
   def initialize(meal_plan, preferences: [], special_requests: nil, ai_client: nil)
     @meal_plan = meal_plan
     @account = meal_plan.account
     @preferences = Array(preferences)
     @special_requests = special_requests.presence
-    @ai_client = ai_client || Ai::Client.new
+    @ai_client = ai_client || Ai::Client.new(model: Ai.meal_planning_model)
   end
 
   def generate(&progress_callback)
-    recipes = fetch_eligible_recipes
+    recipes = select_recipes
     validate_recipe_catalog!(recipes)
 
     report_progress(progress_callback, 10)
@@ -50,12 +65,16 @@ class MealPlanGenerator
 
   private
 
-  def fetch_eligible_recipes
-    @account.recipes
-      .joins(:nutrition_data)
-      .includes(:nutrition_data, :tags)
-      .where.not(recipe_nutrition_data: { calories: nil })
-      .to_a
+  def select_recipes
+    meal_types = active_meal_types
+    participant_diets = @meal_plan.dietary_profiles.pluck(:diet_name)
+
+    selector = RecipeSelector.new(
+      @account, @meal_plan,
+      meal_types: meal_types,
+      participant_diets: participant_diets
+    )
+    selector.select
   end
 
   def validate_recipe_catalog!(recipes)
@@ -105,7 +124,12 @@ class MealPlanGenerator
   end
 
   def call_ai(recipes, constraints)
-    recipe_catalog = recipes.map(&:to_meal_planning_response)
+    @index_to_id = {}
+    recipe_catalog = recipes.each_with_index.map do |recipe, idx|
+      index = idx + 1
+      @index_to_id[index] = recipe.id
+      recipe_to_indexed_hash(recipe, index)
+    end
 
     system_prompt = build_system_prompt(constraints)
     user_message = build_user_message(recipe_catalog, constraints)
@@ -114,7 +138,7 @@ class MealPlanGenerator
       messages: [ { role: "user", content: user_message } ],
       tools: [ meal_plan_tool_definition ],
       system: system_prompt,
-      max_tokens: 8192
+      max_tokens: 4096
     )
 
     unless result[:name] == "assign_meals"
@@ -124,44 +148,50 @@ class MealPlanGenerator
     result[:input]
   end
 
-  def build_system_prompt(constraints)
-    prompt = <<~SYSTEM
-      You are a meal planning assistant for a family-oriented meal planning app.
-      Your job is to create an optimized weekly meal plan that respects dietary requirements,
-      macro targets, and user preferences.
+  def recipe_to_indexed_hash(recipe, index)
+    data = recipe.to_meal_planning_response
+    data[:index] = index
+    data
+  end
 
-      RULES:
-      - Only use recipe IDs from the provided catalog
-      - Each meal assignment should have exactly one recipe
-      - Aim for variety: minimize recipe repetition across the week
-      - Match recipes to appropriate meal types (breakfast recipes for breakfast, etc.)
-      - Consider prep/cook time when assigning meals
-      - Target each participant's daily calorie goals by choosing appropriate recipes
-    SYSTEM
+  def build_system_prompt(constraints)
+    # Static rules get cache_control for prompt caching; dynamic context is appended as a separate block
+    blocks = [
+      { type: "text", text: SYSTEM_RULES, cache_control: { type: "ephemeral" } }
+    ]
+
+    dynamic = build_dynamic_context(constraints)
+    blocks << { type: "text", text: dynamic } if dynamic.present?
+
+    blocks
+  end
+
+  def build_dynamic_context(constraints)
+    parts = []
 
     if constraints[:dietary_profiles]&.any?
-      prompt += "\nPARTICIPANT DIETARY PROFILES:\n"
+      parts << "PARTICIPANT DIETARY PROFILES:"
       constraints[:dietary_profiles].each do |profile|
-        prompt += "- #{profile[:name]}: #{profile[:diet] || 'No specific diet'}, "
-        prompt += "#{profile[:daily_calories] || 'no'} daily calorie target"
+        line = "- #{profile[:name]}: #{profile[:diet] || 'No specific diet'}, "
+        line += "#{profile[:daily_calories] || 'no'} daily calorie target"
         if profile[:macro_targets]
           mt = profile[:macro_targets]
-          prompt += ", macros: #{mt[:fat_g]}g fat, #{mt[:protein_g]}g protein, #{mt[:carbs_g]}g carbs" if mt[:fat_g]
+          line += ", macros: #{mt[:fat_g]}g fat, #{mt[:protein_g]}g protein, #{mt[:carbs_g]}g carbs" if mt[:fat_g]
         end
-        prompt += "\n"
+        parts << line
       end
     end
 
     if constraints[:preferences].any?
-      prompt += "\nUSER PREFERENCES:\n"
-      constraints[:preferences].each { |p| prompt += "- #{p}\n" }
+      parts << "\nUSER PREFERENCES:"
+      constraints[:preferences].each { |p| parts << "- #{p}" }
     end
 
     if constraints[:special_requests]
-      prompt += "\nSPECIAL REQUESTS:\n#{constraints[:special_requests]}\n"
+      parts << "\nSPECIAL REQUESTS:\n#{constraints[:special_requests]}"
     end
 
-    prompt
+    parts.join("\n")
   end
 
   def build_user_message(recipe_catalog, constraints)
@@ -176,17 +206,17 @@ class MealPlanGenerator
 
       #{recipe_catalog.map { |r| format_recipe_for_prompt(r) }.join("\n\n")}
 
-      Please assign one recipe to each meal slot for each day using the assign_meals tool.
+      Assign one recipe to each meal slot for each day using the assign_meals tool.
       Choose recipes that best fit the dietary requirements and optimize for variety and nutrition balance.
     USER
   end
 
   def format_recipe_for_prompt(recipe)
     nutrition = recipe[:nutrition_per_serving]
-    parts = [ "ID: #{recipe[:id]} | #{recipe[:title]} (#{recipe[:category]})" ]
+    parts = [ "##{recipe[:index]} #{recipe[:title]} (#{recipe[:category]})" ]
     parts << "  Servings: #{recipe[:servings]}, Prep: #{recipe[:prep_time] || '?'}min, Cook: #{recipe[:cook_time] || '?'}min"
     if nutrition
-      parts << "  Per serving: #{nutrition[:calories]} cal, #{nutrition[:fat_g]}g fat, #{nutrition[:protein_g]}g protein, #{nutrition[:net_carbs_g]}g net carbs"
+      parts << "  #{nutrition[:calories]} cal, #{nutrition[:fat_g]}g fat, #{nutrition[:protein_g]}g protein, #{nutrition[:net_carbs_g]}g net carbs"
     end
     parts << "  Tags: #{recipe[:tags].join(', ')}" if recipe[:tags].any?
     parts.join("\n")
@@ -195,14 +225,13 @@ class MealPlanGenerator
   def meal_plan_tool_definition
     {
       name: "assign_meals",
-      description: "Assign recipes to each meal slot in the meal plan. Each day should have meals assigned based on the requested meal types.",
+      description: "Assign recipes to each meal slot in the meal plan.",
       input_schema: {
         type: "object",
         required: [ "days" ],
         properties: {
           days: {
             type: "array",
-            description: "Array of day assignments",
             items: {
               type: "object",
               required: [ "day_number", "meals" ],
@@ -213,33 +242,23 @@ class MealPlanGenerator
                 },
                 meals: {
                   type: "array",
-                  description: "Meals assigned to this day",
                   items: {
                     type: "object",
                     required: [ "meal_type", "recipe_id" ],
                     properties: {
                       meal_type: {
                         type: "string",
-                        enum: %w[breakfast lunch dinner snack],
-                        description: "The type of meal"
+                        enum: %w[breakfast lunch dinner snack]
                       },
                       recipe_id: {
-                        type: "string",
-                        description: "The ID of the recipe to assign"
-                      },
-                      servings: {
-                        type: "number",
-                        description: "Number of base recipe servings (default 1.0)"
+                        type: "integer",
+                        description: "The recipe index number from the catalog"
                       }
                     }
                   }
                 }
               }
             }
-          },
-          reasoning: {
-            type: "string",
-            description: "Brief explanation of the meal plan choices and optimization strategy"
           }
         }
       }
@@ -256,20 +275,28 @@ class MealPlanGenerator
       next unless day
 
       Array(day_data["meals"]).each do |meal_data|
-        recipe = recipe_lookup[meal_data["recipe_id"].to_s]
+        recipe_id = resolve_recipe_id(meal_data["recipe_id"])
+        recipe = recipe_lookup[recipe_id]
         next unless recipe
 
         meal_type = meal_data["meal_type"]
         next unless MealPlanMeal.meal_types.key?(meal_type)
 
-        servings = (meal_data["servings"] || 1.0).to_f.clamp(0.25, 10.0)
-
         day.meals.create!(
           recipe: recipe,
           meal_type: meal_type,
-          servings: servings
+          servings: 1.0
         )
       end
+    end
+  end
+
+  def resolve_recipe_id(raw_id)
+    # AI returns integer indices; map back to UUIDs
+    if raw_id.is_a?(Integer) || (raw_id.is_a?(String) && raw_id.match?(/\A\d+\z/))
+      @index_to_id[raw_id.to_i]
+    else
+      raw_id.to_s
     end
   end
 

@@ -37,11 +37,7 @@ class RecipeNutritionData < ApplicationRecord
       calories: calories,
       fat_g: fat&.to_f,
       protein_g: protein&.to_f,
-      net_carbs_g: net_carbs&.to_f,
-      fiber_g: fiber&.to_f,
-      sodium_mg: sodium,
-      potassium_mg: potassium,
-      magnesium_mg: magnesium
+      net_carbs_g: net_carbs&.to_f
     }
   end
 
