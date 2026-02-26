@@ -62,26 +62,20 @@
   <% if defined?(participants) && participants&.any? && day.meals.any? %>
     <div class="px-6 py-4 border-t border-warm-200 bg-warm-50 rounded-b-lg">
       <h4 class="text-xs font-semibold text-warm-500 uppercase tracking-wider mb-3">Daily Macros by Participant</h4>
-      <div class="space-y-2">
+      <div class="space-y-4">
         <% participants.each_with_index do |participant, p_idx| %>
           <% totals = participant.daily_totals_for(day) %>
           <% targets = participant.macro_targets %>
-          <div class="flex items-center gap-3 text-sm">
-            <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background-color: <%= participant_color(p_idx) %>"></span>
-            <span class="font-medium text-warm-900 w-20 truncate"><%= participant.name %></span>
-            <div class="flex gap-4 text-xs">
-              <span class="<%= macro_status_class(totals[:calories], targets&.dig(:calories)) %>">
-                Cal: <%= totals[:calories].round %><%= "/#{targets[:calories]}" if targets&.dig(:calories) %>
-              </span>
-              <span class="<%= macro_status_class(totals[:fat_g], targets&.dig(:fat_g)) %>">
-                Fat: <%= totals[:fat_g].round(1) %>g<%= "/#{targets[:fat_g]}g" if targets&.dig(:fat_g) %>
-              </span>
-              <span class="<%= macro_status_class(totals[:protein_g], targets&.dig(:protein_g)) %>">
-                Protein: <%= totals[:protein_g].round(1) %>g<%= "/#{targets[:protein_g]}g" if targets&.dig(:protein_g) %>
-              </span>
-              <span class="<%= macro_status_class(totals[:net_carbs_g], targets&.dig(:carbs_g)) %>">
-                Carbs: <%= totals[:net_carbs_g].round(1) %>g<%= "/#{targets[:carbs_g]}g" if targets&.dig(:carbs_g) %>
-              </span>
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background-color: <%= participant_color(p_idx) %>"></span>
+              <span class="font-medium text-warm-900 text-sm"><%= participant.name %></span>
+            </div>
+            <div class="space-y-1.5 ml-5">
+              <%= macro_progress_bar(actual: totals[:calories].round, target: targets&.dig(:calories), label: "Cal", macro_key: nil, unit: "") %>
+              <%= macro_progress_bar(actual: totals[:fat_g], target: targets&.dig(:fat_g), label: "Fat", macro_key: :fat) %>
+              <%= macro_progress_bar(actual: totals[:protein_g], target: targets&.dig(:protein_g), label: "Protein", macro_key: :protein) %>
+              <%= macro_progress_bar(actual: totals[:net_carbs_g], target: targets&.dig(:carbs_g), label: "Carbs", macro_key: :carbs) %>
             </div>
           </div>
         <% end %>

@@ -22,11 +22,11 @@ class Accounts::DietaryProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", "Dietary Profiles"
     # Active profiles should appear
-    assert_select "td", "Dad"
-    assert_select "td", "Mom"
-    assert_select "td", "Timmy"
+    assert_select "h3", "Dad"
+    assert_select "h3", "Mom"
+    assert_select "h3", "Timmy"
     # Inactive should not
-    assert_select "td", text: "Grandpa", count: 0
+    assert_select "h3", text: "Grandpa", count: 0
   end
 
   test "should get new dietary profile form" do

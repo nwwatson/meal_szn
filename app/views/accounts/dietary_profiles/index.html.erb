@@ -11,32 +11,44 @@
   </div>
 
   <% if @dietary_profiles.any? %>
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="min-w-full divide-y divide-warm-200">
-        <thead class="bg-warm-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-warm-500 uppercase tracking-wider">Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-warm-500 uppercase tracking-wider">Diet</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-warm-500 uppercase tracking-wider">Daily Calories</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-warm-500 uppercase tracking-wider">Linked User</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-warm-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-warm-200">
-          <% @dietary_profiles.each do |profile| %>
-            <tr>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-warm-900"><%= profile.name %></td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-warm-500"><%= profile.diet_name.presence || "None" %></td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-warm-500"><%= profile.daily_calories_target ? "#{profile.daily_calories_target} cal" : "Not set" %></td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-warm-500"><%= profile.user&.name || "—" %></td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                <%= link_to "Edit", edit_dietary_profile_path(profile), class: "text-primary-600 hover:text-primary-700 font-medium mr-3" %>
-                <%= button_to "Remove", dietary_profile_path(profile), method: :delete, class: "text-red-600 hover:text-red-700 font-medium", data: { turbo_confirm: "Remove this dietary profile?" } %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+    <div class="space-y-4">
+      <% @dietary_profiles.each do |profile| %>
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="flex items-start gap-5">
+            <% targets = profile.macro_targets %>
+            <% if targets && targets[:fat_g] && targets[:protein_g] && targets[:carbs_g] %>
+              <%= mini_donut_chart(fat_g: targets[:fat_g], protein_g: targets[:protein_g], carbs_g: targets[:carbs_g]) %>
+            <% end %>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-1">
+                <h3 class="text-lg font-semibold text-warm-900"><%= profile.name %></h3>
+                <div class="flex items-center gap-3 text-sm shrink-0">
+                  <%= link_to "Edit", edit_dietary_profile_path(profile), class: "text-primary-600 hover:text-primary-700 font-medium" %>
+                  <%= button_to "Remove", dietary_profile_path(profile), method: :delete, class: "text-red-600 hover:text-red-700 font-medium", data: { turbo_confirm: "Remove this dietary profile?" } %>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-3 text-sm text-warm-500">
+                <% if profile.diet_name.present? %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"><%= profile.diet_name %></span>
+                <% end %>
+                <% if profile.daily_calories_target %>
+                  <span><%= profile.daily_calories_target %> cal/day</span>
+                <% end %>
+                <% if profile.user %>
+                  <span>Linked to <%= profile.user.name %></span>
+                <% end %>
+              </div>
+              <% if targets && targets[:fat_g] %>
+                <div class="flex gap-4 mt-2 text-xs text-warm-500">
+                  <span>Fat: <strong class="text-warm-700"><%= targets[:fat_g] %>g</strong></span>
+                  <span>Protein: <strong class="text-warm-700"><%= targets[:protein_g] %>g</strong></span>
+                  <span>Carbs: <strong class="text-warm-700"><%= targets[:carbs_g] %>g</strong></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
     </div>
   <% else %>
     <div class="bg-white rounded-lg shadow px-6 py-12 text-center">
