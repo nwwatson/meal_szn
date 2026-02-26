@@ -90,11 +90,13 @@ URL-based recipe import lives in `app/services/recipe_import/`. The pipeline:
 3. **`AiExtractor`** — Fallback: sends stripped page text to Claude via `Ai::Client.chat_with_tools` with an `extract_recipe` tool definition. Truncates to 12K chars.
 4. **`UrlImporter`** — Orchestrator: fetch → try JSON-LD → try AI → raise `ImportError`. Exposes `method_used` (`:json_ld` or `:ai`).
 
-**Job:** `RecipeImportJob < AiBaseJob` runs the pipeline asynchronously, storing results in `AiTaskStatus.result`.
+**Photo import:** `PhotoExtractor` sends images (Active Storage blobs or raw base64 hashes) to Claude vision via `Ai::Client.chat_with_tools` with the same `extract_recipe` tool. Supports multi-image for multi-page recipes. Max 10MB per image, JPEG/PNG/GIF/WebP.
 
-**Controller flow:** `import_url` (form) → `start_import` (creates task, enqueues job) → `import_status` (polls with reload) → `import_review` (pre-fills recipe form from extracted data).
+**Jobs:** `RecipeImportJob < AiBaseJob` (URL pipeline), `RecipeImportPhotoJob < AiBaseJob` (photo pipeline). Both store results in `AiTaskStatus.result`.
 
-**Testing pattern:** `UrlImporter` exposes a `fetch_html` private method that the test subclass (`TestableImporter`) overrides to return fixture HTML. `AiExtractor` accepts an `ai_client:` kwarg for injecting a fake client.
+**Controller flow:** Two entry points — `import_url` (URL form) and `import_photo` (file upload form). Both flow through shared `import_status` (polls with reload) → `import_review` (pre-fills recipe form). Task types: `recipe_import` (URL) and `recipe_photo_import` (photo) — used to route failure redirects back to the correct form.
+
+**Testing pattern:** `UrlImporter` exposes a `fetch_html` private method that the test subclass (`TestableImporter`) overrides to return fixture HTML. `AiExtractor` and `PhotoExtractor` accept an `ai_client:` kwarg for injecting a fake client.
 
 ### Design System
 
