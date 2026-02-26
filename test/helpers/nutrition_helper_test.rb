@@ -133,4 +133,78 @@ class NutritionHelperTest < ActionView::TestCase
     assert_match(/Keto/, badge)
     assert_match(/High-Protein/, badge)
   end
+
+  # === diet_score_badges (green/yellow scoring) ===
+
+  test "diet_score_badges returns green badge for score >= 0.7" do
+    nd = RecipeNutritionData.new(calories: 500, diet_scores: { "keto" => 0.85 })
+    html = diet_score_badges(nd)
+    assert_match(/Keto/, html)
+    assert_match(/bg-green-100/, html)
+  end
+
+  test "diet_score_badges returns yellow badge for score 0.4-0.7" do
+    nd = RecipeNutritionData.new(calories: 500, diet_scores: { "paleo" => 0.55 })
+    html = diet_score_badges(nd)
+    assert_match(/Paleo/, html)
+    assert_match(/bg-amber-50/, html)
+  end
+
+  test "diet_score_badges hides badge for score < 0.4" do
+    nd = RecipeNutritionData.new(calories: 500, diet_scores: { "vegan" => 0.2 })
+    assert_nil diet_score_badges(nd)
+  end
+
+  test "diet_score_badges returns nil when no diet_scores" do
+    nd = RecipeNutritionData.new(calories: 500)
+    assert_nil diet_score_badges(nd)
+  end
+
+  test "diet_score_badges includes aria label with percentage" do
+    nd = RecipeNutritionData.new(calories: 500, diet_scores: { "keto" => 0.85 })
+    html = diet_score_badges(nd)
+    assert_match(/85% compatible/, html)
+  end
+
+  test "diet_score_badges shows multiple badges in order" do
+    nd = RecipeNutritionData.new(calories: 500, diet_scores: { "keto" => 0.9, "carnivore" => 0.75, "paleo" => 0.5 })
+    html = diet_score_badges(nd)
+    assert_match(/Keto/, html)
+    assert_match(/Carnivore/, html)
+    assert_match(/Paleo/, html)
+    # Keto should appear before Carnivore (badge order)
+    assert html.index("Keto") < html.index("Carnivore")
+  end
+
+  # === diet_score_breakdown ===
+
+  test "diet_score_breakdown renders bars for scored diets" do
+    nd = RecipeNutritionData.new(calories: 500, diet_scores: { "keto" => 0.85, "low-carb" => 0.6, "paleo" => 0.3 })
+    html = diet_score_breakdown(nd)
+    assert_match(/Keto/, html)
+    assert_match(/85%/, html)
+    assert_match(/bg-green-500/, html)
+    assert_match(/Low-Carb/, html)
+    assert_match(/60%/, html)
+    assert_match(/bg-amber-400/, html)
+    assert_match(/Paleo/, html)
+    assert_match(/30%/, html)
+    assert_match(/bg-warm-300/, html)
+  end
+
+  test "diet_score_breakdown returns nil when no diet_scores" do
+    nd = RecipeNutritionData.new(calories: 500)
+    assert_nil diet_score_breakdown(nd)
+  end
+
+  test "diet_score_breakdown skips zero scores" do
+    nd = RecipeNutritionData.new(calories: 500, diet_scores: { "keto" => 0.85, "vegan" => 0.0 })
+    html = diet_score_breakdown(nd)
+    assert_match(/Keto/, html)
+    assert_no_match(/Vegan/, html)
+  end
+
+  test "diet_score_breakdown returns nil for nil nutrition_data" do
+    assert_nil diet_score_breakdown(nil)
+  end
 end

@@ -7,6 +7,7 @@ class Accounts::RecipesController < ApplicationController
       .includes(:nutrition_data, :tags, image_attachment: :blob)
       .by_category(params[:category])
       .by_tags(params[:tags])
+      .by_diet(params[:diet])
       .order(created_at: :desc)
 
     @categories = Recipe.categories.keys.map do |category|
@@ -14,6 +15,7 @@ class Accounts::RecipesController < ApplicationController
     end
 
     @tags = Current.account.tags.alphabetical.with_recipe_count
+    @diet_filters = DietCategorizer::DIET_TAG_SLUGS.map { |name, slug| [ NutritionHelper::DIET_BADGE_STYLES.dig(slug, :label) || name, slug ] }
   end
 
   def show

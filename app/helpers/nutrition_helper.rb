@@ -106,6 +106,68 @@ module NutritionHelper
     safe_join(badges, " ")
   end
 
+  def diet_score_badges(nutrition_data)
+    return nil unless nutrition_data&.diet_scores.present?
+
+    scores = nutrition_data.diet_scores
+    badges = DIET_BADGE_ORDER.filter_map do |slug|
+      score = scores[slug].to_f
+      next if score < 0.4
+
+      style = DIET_BADGE_STYLES[slug]
+      next unless style
+
+      if score >= 0.7
+        bg = style[:bg]
+        text = style[:text]
+      else
+        bg = "bg-amber-50"
+        text = "text-amber-700"
+      end
+
+      content_tag(:span, style[:label],
+        class: "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium #{bg} #{text}",
+        aria: { label: "#{style[:label]}: #{(score * 100).round}% compatible" })
+    end
+
+    return nil if badges.empty?
+    safe_join(badges, " ")
+  end
+
+  def diet_score_breakdown(nutrition_data)
+    return nil unless nutrition_data&.diet_scores.present?
+
+    scores = nutrition_data.diet_scores
+    rows = DIET_BADGE_ORDER.filter_map do |slug|
+      score = scores[slug].to_f
+      next if score.zero?
+
+      style = DIET_BADGE_STYLES[slug]
+      next unless style
+
+      pct = (score * 100).round
+
+      bar_color = if score >= 0.7
+        "bg-green-500"
+      elsif score >= 0.4
+        "bg-amber-400"
+      else
+        "bg-warm-300"
+      end
+
+      content_tag(:div, class: "flex items-center gap-3 text-sm") do
+        content_tag(:span, style[:label], class: "w-28 font-medium text-warm-700 shrink-0") +
+        content_tag(:div, class: "flex-1 bg-warm-100 rounded-full h-2 overflow-hidden") do
+          content_tag(:div, "", class: "h-full rounded-full #{bar_color} transition-all", style: "width: #{pct}%")
+        end +
+        content_tag(:span, "#{pct}%", class: "w-10 text-right text-warm-500 tabular-nums shrink-0")
+      end
+    end
+
+    return nil if rows.empty?
+    safe_join(rows)
+  end
+
   def mini_donut_chart(fat_g:, protein_g:, carbs_g:)
     macro_donut_chart(fat_g: fat_g, protein_g: protein_g, carbs_g: carbs_g, size: 48)
   end

@@ -125,6 +125,19 @@ class Accounts::RecipesControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", recipes(:two).title
   end
 
+  test "should filter recipes by diet" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { diet: "keto" }
+    assert_response :success
+  end
+
+  test "index shows diet filter pills" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes"
+    assert_response :success
+    assert_select "a", "Keto"
+  end
+
   test "should create recipe with tags" do
     sign_in_as(@session)
 

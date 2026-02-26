@@ -49,8 +49,8 @@
       <div class="p-6 border-b border-warm-200 bg-warm-50">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-semibold text-warm-500 uppercase tracking-wider">Nutrition per Serving</h2>
-          <% if (badge = diet_compatibility_badge(@recipe.nutrition_data)) %>
-            <div class="flex gap-1.5"><%= badge %></div>
+          <% if (badges = diet_score_badges(@recipe.nutrition_data) || diet_compatibility_badge(@recipe.nutrition_data)) %>
+            <div class="flex gap-1.5"><%= badges %></div>
           <% end %>
         </div>
         <div class="flex items-start gap-8">
@@ -67,6 +67,16 @@
           </div>
         </div>
       </div>
+
+      <% if (breakdown = diet_score_breakdown(@recipe.nutrition_data)) %>
+        <div class="p-6 border-b border-warm-200">
+          <h2 class="text-sm font-semibold text-warm-500 uppercase tracking-wider mb-4">Diet Compatibility</h2>
+          <div class="space-y-3">
+            <%= breakdown %>
+          </div>
+          <p class="text-xs text-warm-400 mt-4">Scores are based on how closely this recipe's macros match each diet's target ranges.</p>
+        </div>
+      <% end %>
     <% end %>
 
     <% if @recipe.ingredients.any? %>
