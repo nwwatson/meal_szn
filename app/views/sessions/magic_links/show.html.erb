@@ -1,31 +1,87 @@
 <% content_for(:title, "Enter code - MealSzn") %>
 
-<h2 class="text-2xl font-display font-bold text-warm-900 mb-2 text-center">Check your email</h2>
+<%# Hero override for verification page %>
+<% content_for(:hero_content) do %>
+  <li class="flex items-start gap-3 text-primary-100/90">
+    <span class="text-accent-300 mt-0.5 text-lg">&#10022;</span>
+    <span>Check your inbox for a 6-character code</span>
+  </li>
+  <li class="flex items-start gap-3 text-primary-100/90">
+    <span class="text-accent-300 mt-0.5 text-lg">&#10022;</span>
+    <span>The code is case-insensitive</span>
+  </li>
+  <li class="flex items-start gap-3 text-primary-100/90">
+    <span class="text-accent-300 mt-0.5 text-lg">&#10022;</span>
+    <span>It expires in 15 minutes for your security</span>
+  </li>
+<% end %>
 
-<p class="text-warm-600 mb-6 text-center">
-  We sent a 6-digit code to<br>
-  <strong class="text-warm-900"><%= @email_address %></strong>
-</p>
+<div class="text-center mb-8">
+  <%# Envelope icon %>
+  <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-50 mb-4">
+    <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+    </svg>
+  </div>
 
-<%= form_with url: session_magic_link_path, method: :post, class: "space-y-6" do |f| %>
-  <div>
-    <%= f.label :code, "Verification code", class: "block text-sm font-medium text-warm-700 mb-1" %>
-    <%= f.text_field :code,
-        required: true,
-        autofocus: true,
-        autocomplete: "one-time-code",
-        maxlength: 7,
-        class: "w-full px-4 py-3 border border-warm-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center text-2xl tracking-widest font-mono uppercase",
-        placeholder: "ABC-123" %>
-    <p class="mt-2 text-sm text-warm-500">Code expires in 15 minutes</p>
+  <h2 class="text-3xl font-display font-bold text-warm-900 mb-2">Check your email</h2>
+  <p class="text-warm-500">
+    We sent a 6-character code to<br>
+    <strong class="text-warm-800"><%= @email_address %></strong>
+  </p>
+</div>
+
+<%= form_with url: session_magic_link_path, method: :post, class: "space-y-6",
+    data: { controller: "submit-button", action: "submit->submit-button#submit" } do |f| %>
+
+  <div data-controller="code-input">
+    <label class="block text-sm font-semibold text-warm-700 mb-3 text-center">Verification code</label>
+
+    <%# Hidden field synced by code-input controller — submits as "code" param %>
+    <input type="hidden" name="code" data-code-input-target="hidden">
+
+    <div class="flex justify-center gap-2 sm:gap-3">
+      <% 6.times do |i| %>
+        <input type="text"
+          maxlength="1"
+          data-code-input-target="box"
+          data-index="<%= i %>"
+          data-action="input->code-input#onInput keydown->code-input#onKeydown paste->code-input#onPaste"
+          autocomplete="<%= i == 0 ? 'one-time-code' : 'off' %>"
+          class="code-box w-12 h-14 sm:w-14 sm:h-16 border-2 border-warm-300 rounded-xl text-center text-2xl font-mono font-bold text-warm-900 uppercase
+                 focus:border-primary-500 focus:ring-0 focus:outline-none transition-colors"
+        >
+        <% if i == 2 %>
+          <span class="flex items-center text-warm-400 text-2xl font-light select-none">-</span>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# Countdown timer %>
+    <div class="mt-4 text-center" data-controller="countdown" data-countdown-minutes-value="15">
+      <p class="text-sm text-warm-500">
+        Code expires in <span data-countdown-target="display" class="font-mono tabular-nums">15:00</span>
+      </p>
+    </div>
   </div>
 
   <div>
-    <%= f.submit "Verify",
-        class: "w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 font-medium transition-colors cursor-pointer" %>
+    <button type="submit"
+        class="relative w-full bg-accent-500 text-white py-3.5 px-6 rounded-xl hover:bg-accent-600 focus:ring-2 focus:ring-accent-400 focus:ring-offset-2 font-semibold transition-colors cursor-pointer text-lg"
+        data-submit-button-target="button">
+      <span data-submit-button-target="label">Verify code</span>
+      <span data-submit-button-target="spinner" class="hidden absolute inset-0 flex items-center justify-center">
+        <svg class="spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+      </span>
+    </button>
   </div>
 <% end %>
 
 <div class="mt-6 text-center">
-  <%= link_to "← Back to sign in", new_session_path, class: "text-warm-600 hover:text-warm-800" %>
+  <%= link_to new_session_path, class: "text-warm-500 hover:text-warm-700 text-sm transition-colors" do %>
+    &larr; Back to sign in
+  <% end %>
 </div>

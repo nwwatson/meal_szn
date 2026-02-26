@@ -98,3 +98,81 @@
   60% { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
+
+/* ============================================
+ * Public Auth — Split Layout & Hero
+ * ============================================ */
+
+/* Hero panel gradient — rich terracotta to deep brown */
+.hero-panel {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(240, 203, 95, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(237, 170, 125, 0.2) 0%, transparent 50%),
+    linear-gradient(155deg, #5c2b17 0%, #7d381c 30%, #a14722 60%, #c2582a 100%);
+}
+
+/* Decorative dotted pattern overlay */
+.hero-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Floating food icon animation */
+.hero-float {
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+.hero-float-delayed {
+  animation: hero-float 6s ease-in-out 2s infinite;
+}
+
+.hero-float-slow {
+  animation: hero-float 8s ease-in-out 1s infinite;
+}
+
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-12px) rotate(3deg); }
+  66% { transform: translateY(4px) rotate(-2deg); }
+}
+
+/* Staggered fade-in for hero content */
+.fade-up {
+  animation: fade-up 0.6s ease-out both;
+}
+
+.fade-up-delay-1 { animation-delay: 0.1s; }
+.fade-up-delay-2 { animation-delay: 0.2s; }
+.fade-up-delay-3 { animation-delay: 0.35s; }
+.fade-up-delay-4 { animation-delay: 0.5s; }
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Countdown timer ring animation */
+.countdown-ring {
+  transition: stroke-dashoffset 1s linear;
+}
+
+/* Code input box focus glow */
+.code-box:focus {
+  box-shadow: 0 0 0 3px rgba(212, 114, 46, 0.25);
+}
+
+/* Spinner rotation for submit button */
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -1,25 +1,52 @@
 <% content_for(:title, "Complete your profile - MealSzn") %>
 
-<h2 class="text-2xl font-display font-bold text-warm-900 mb-2 text-center">Complete your profile</h2>
+<%# Hero override %>
+<% content_for(:hero_content) do %>
+  <li class="flex items-start gap-3 text-primary-100/90">
+    <span class="text-accent-300 mt-0.5 text-lg">&#10022;</span>
+    <span>One last step before you start planning</span>
+  </li>
+  <li class="flex items-start gap-3 text-primary-100/90">
+    <span class="text-accent-300 mt-0.5 text-lg">&#10022;</span>
+    <span>Your data stays private and secure</span>
+  </li>
+<% end %>
 
-<p class="text-warm-600 mb-6 text-center">
-  Tell us a bit about yourself
-</p>
+<div class="text-center mb-8">
+  <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-50 mb-4">
+    <svg class="w-8 h-8 text-accent-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+    </svg>
+  </div>
 
-<%= form_with model: @signup, url: signup_completion_path, method: :post, class: "space-y-6" do |f| %>
+  <h2 class="text-3xl font-display font-bold text-warm-900 mb-2">Complete your profile</h2>
+  <p class="text-warm-500">Tell us your name so we can personalize your experience</p>
+</div>
+
+<%= form_with model: @signup, url: signup_completion_path, method: :post, class: "space-y-6",
+    data: { controller: "submit-button", action: "submit->submit-button#submit" } do |f| %>
   <div>
-    <%= f.label :full_name, "Your name", class: "block text-sm font-medium text-warm-700 mb-1" %>
+    <%= f.label :full_name, "Your name", class: "block text-sm font-semibold text-warm-700 mb-2" %>
     <%= f.text_field :full_name,
         required: true,
         autofocus: true,
         autocomplete: "name",
         name: "full_name",
-        class: "w-full px-4 py-2 border border-warm-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
+        class: "w-full px-5 py-3.5 border border-warm-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-warm-900 placeholder-warm-400 transition-shadow",
         placeholder: "Jane Smith" %>
   </div>
 
   <div>
-    <%= f.submit "Create account",
-        class: "w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 font-medium transition-colors cursor-pointer" %>
+    <button type="submit"
+        class="relative w-full bg-accent-500 text-white py-3.5 px-6 rounded-xl hover:bg-accent-600 focus:ring-2 focus:ring-accent-400 focus:ring-offset-2 font-semibold transition-colors cursor-pointer text-lg"
+        data-submit-button-target="button">
+      <span data-submit-button-target="label">Create account</span>
+      <span data-submit-button-target="spinner" class="hidden absolute inset-0 flex items-center justify-center">
+        <svg class="spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+      </span>
+    </button>
   </div>
 <% end %>
