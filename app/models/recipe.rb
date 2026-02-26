@@ -29,6 +29,13 @@ class Recipe < ApplicationRecord
 
   scope :by_category, ->(category) { where(category: category) if category.present? }
   scope :by_tags, ->(tag_ids) { joins(:recipe_tags).where(recipe_tags: { tag_id: tag_ids }).distinct if tag_ids.present? }
+  scope :by_diet, ->(diet_slug) {
+    joins(:tags).where(tags: { name: "#{DietCategorizer::TAG_PREFIX}#{diet_slug}" }).distinct if diet_slug.present?
+  }
+
+  def categorize_diets!
+    DietCategorizer.new(self).categorize!
+  end
 
   def unresolved_ingredients
     ingredients.where(nutrition_item_id: nil)

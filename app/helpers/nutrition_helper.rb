@@ -70,24 +70,37 @@ module NutritionHelper
     end
   end
 
+  DIET_BADGE_STYLES = {
+    "keto" => { label: "Keto", bg: "bg-green-100", text: "text-green-800" },
+    "low-carb" => { label: "Low-Carb", bg: "bg-teal-100", text: "text-teal-800" },
+    "high-protein" => { label: "High-Protein", bg: "bg-blue-100", text: "text-blue-800" },
+    "paleo" => { label: "Paleo", bg: "bg-orange-100", text: "text-orange-800" },
+    "carnivore" => { label: "Carnivore", bg: "bg-red-100", text: "text-red-800" },
+    "mediterranean" => { label: "Mediterranean", bg: "bg-sky-100", text: "text-sky-800" },
+    "vegan" => { label: "Vegan", bg: "bg-emerald-100", text: "text-emerald-800" },
+    "zone" => { label: "Zone", bg: "bg-violet-100", text: "text-violet-800" },
+    "standard" => { label: "Standard", bg: "bg-warm-100", text: "text-warm-800" }
+  }.freeze
+
+  DIET_BADGE_ORDER = %w[keto low-carb carnivore high-protein paleo mediterranean vegan zone standard].freeze
+
   def diet_compatibility_badge(nutrition_data)
     return nil unless nutrition_data&.calories&.positive?
 
-    carb_cal = nutrition_data.net_carbs.to_f * 4
-    total_cal = nutrition_data.calories.to_f
-
-    carb_pct = carb_cal / total_cal * 100
-
-    badges = []
-    if carb_pct <= 10
-      badges << content_tag(:span, "Keto", class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800")
-    elsif carb_pct <= 25
-      badges << content_tag(:span, "Low-Carb", class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800")
+    compatible = if nutrition_data.diet_scores.present?
+      nutrition_data.compatible_diets
+    else
+      calculate_compatible_diets_inline(nutrition_data)
     end
 
-    if nutrition_data.protein.to_f * 4 / total_cal * 100 >= 30
-      badges << content_tag(:span, "High-Protein", class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800")
-    end
+    return nil if compatible.empty?
+
+    badges = DIET_BADGE_ORDER.select { |slug| compatible.include?(slug) }.map do |slug|
+      style = DIET_BADGE_STYLES[slug]
+      next unless style
+      content_tag(:span, style[:label],
+        class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{style[:bg]} #{style[:text]}")
+    end.compact
 
     return nil if badges.empty?
     safe_join(badges, " ")
@@ -110,6 +123,21 @@ module NutritionHelper
       content_tag(:span, "", class: "inline-block w-2 h-2 rounded-full", style: "background: #{MACRO_COLORS[macro]}") +
       content_tag(:span, "#{macro.to_s.capitalize} #{pct}%", class: "text-warm-600")
     end
+  end
+
+  def calculate_compatible_diets_inline(nutrition_data)
+    diets = []
+    carb_cal = nutrition_data.net_carbs.to_f * 4
+    total_cal = nutrition_data.calories.to_f
+    carb_pct = carb_cal / total_cal * 100
+
+    diets << "keto" if carb_pct <= 10
+    diets << "low-carb" if carb_pct <= 25 && carb_pct > 10
+
+    protein_pct = nutrition_data.protein.to_f * 4 / total_cal * 100
+    diets << "high-protein" if protein_pct >= 30
+
+    diets
   end
 
   def macro_bar_status_class(actual, target)
