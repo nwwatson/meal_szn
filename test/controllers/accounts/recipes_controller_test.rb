@@ -403,4 +403,60 @@ class Accounts::RecipesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", "New Recipe"
   end
+
+  # --- Import Photo ---
+
+  test "import_photo shows photo upload form" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes/import_photo"
+    assert_response :success
+    assert_select "h1", "Import Recipe from Photo"
+    assert_select "input[type='file']"
+  end
+
+  test "start_photo_import redirects when no photos" do
+    sign_in_as(@session)
+    post "#{account_path_prefix}/recipes/start_photo_import"
+    assert_redirected_to import_photo_recipes_path
+    assert_equal "Please select at least one photo.", flash[:alert]
+  end
+
+  test "start_photo_import creates task and redirects to status" do
+    sign_in_as(@session)
+
+    photo = fixture_file_upload("test_image.jpg", "image/jpeg")
+
+    assert_difference "AiTaskStatus.count" do
+      post "#{account_path_prefix}/recipes/start_photo_import", params: { photos: [ photo ] }
+    end
+
+    task = AiTaskStatus.order(created_at: :desc).first
+    assert_equal "recipe_photo_import", task.task_type
+    assert_redirected_to import_status_recipes_path(task_id: task.id)
+  end
+
+  test "import_status redirects to import_photo when photo task failed" do
+    sign_in_as(@session)
+    task = @account.ai_task_statuses.create!(task_type: "recipe_photo_import")
+    task.mark_processing!
+    task.mark_failed!(error_message: "Could not read image")
+
+    get "#{account_path_prefix}/recipes/import_status", params: { task_id: task.id }
+    assert_redirected_to import_photo_recipes_path
+    assert_match(/Could not read image/, flash[:alert])
+  end
+
+  test "import_url page links to photo import" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes/import_url"
+    assert_response :success
+    assert_select "a[href=?]", import_photo_recipes_path
+  end
+
+  test "import_photo page links to URL import" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes/import_photo"
+    assert_response :success
+    assert_select "a[href=?]", import_url_recipes_path
+  end
 end

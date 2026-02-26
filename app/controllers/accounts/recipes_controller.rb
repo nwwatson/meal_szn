@@ -119,13 +119,38 @@ class Accounts::RecipesController < ApplicationController
     redirect_to import_status_recipes_path(task_id: task.id)
   end
 
+  def import_photo
+  end
+
+  def start_photo_import
+    photos = params[:photos]
+    if photos.blank?
+      redirect_to import_photo_recipes_path, alert: "Please select at least one photo."
+      return
+    end
+
+    blob_ids = photos.map do |photo|
+      ActiveStorage::Blob.create_and_upload!(
+        io: photo,
+        filename: photo.original_filename,
+        content_type: photo.content_type
+      ).id
+    end
+
+    task = Current.account.ai_task_statuses.create!(task_type: "recipe_photo_import")
+    RecipeImportPhotoJob.perform_later(task.id, blob_ids: blob_ids)
+
+    redirect_to import_status_recipes_path(task_id: task.id)
+  end
+
   def import_status
     @task = Current.account.ai_task_statuses.find(params[:task_id])
 
     if @task.completed?
       redirect_to import_review_recipes_path(task_id: @task.id)
     elsif @task.failed?
-      redirect_to import_url_recipes_path, alert: "Import failed: #{@task.error_message}"
+      failure_path = @task.task_type == "recipe_photo_import" ? import_photo_recipes_path : import_url_recipes_path
+      redirect_to failure_path, alert: "Import failed: #{@task.error_message}"
     end
   end
 
