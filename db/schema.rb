@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_25_213133) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_26_042020) do
   create_table "access_tokens", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at"
@@ -274,6 +274,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_25_213133) do
     t.integer "calories"
     t.decimal "carbs", precision: 6, scale: 1
     t.datetime "created_at", null: false
+    t.json "diet_scores"
     t.decimal "fat", precision: 6, scale: 1
     t.decimal "fiber", precision: 6, scale: 1
     t.integer "magnesium"

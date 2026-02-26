@@ -6,6 +6,17 @@ class RecipeNutritionData < ApplicationRecord
   validates :recipe_id, uniqueness: true
 
   before_save :calculate_net_carbs
+  after_commit :categorize_diets, on: [ :create, :update ], if: :macros_previously_changed?
+
+  def diet_score_for(diet_slug)
+    diet_scores&.dig(diet_slug)
+  end
+
+  def compatible_diets(threshold: DietCategorizer::COMPATIBILITY_THRESHOLD)
+    return [] unless diet_scores.present?
+
+    diet_scores.select { |_, score| score >= threshold }.keys
+  end
 
   def to_api_response
     {
@@ -35,6 +46,14 @@ class RecipeNutritionData < ApplicationRecord
   end
 
   private
+
+  def macros_previously_changed?
+    previous_changes.keys.intersect?(%w[calories fat protein carbs fiber])
+  end
+
+  def categorize_diets
+    DietCategorizer.new(recipe).categorize!
+  end
 
   def calculate_net_carbs
     if carbs.present? && fiber.present?
