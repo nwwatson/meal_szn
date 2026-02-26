@@ -39,13 +39,15 @@ class MealPlanMealTest < ActiveSupport::TestCase
   end
 
   test "calories returns 0 when no nutrition data" do
+    bare_recipe = accounts(:one).recipes.create!(title: "No Nutrition", category: :snacks)
     meal = MealPlanMeal.new(
       meal_plan_day: meal_plan_days(:day_two),
-      recipe: recipes(:side_dish),
+      recipe: bare_recipe,
       meal_type: :snack,
       servings: 1
     )
     assert_equal 0, meal.calories
+    bare_recipe.destroy
   end
 
   test "to_api_response includes meal_type, servings, recipe, nutrition" do

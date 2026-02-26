@@ -1,5 +1,5 @@
-<div class="bg-white rounded-lg shadow" data-controller="meal-plan-form">
-  <%= form_with(model: meal_plan, url: meal_plan.persisted? ? meal_plan_path(meal_plan) : meal_plans_path, class: "p-6 space-y-6") do |f| %>
+<div class="bg-white rounded-lg shadow" data-controller="meal-plan-form ai-generate">
+  <%= form_with(model: meal_plan, url: meal_plan.persisted? ? meal_plan_path(meal_plan) : meal_plans_path, class: "p-6 space-y-6", id: dom_id(meal_plan, :form)) do |f| %>
     <% if meal_plan.errors.any? %>
       <div class="bg-red-50 text-red-700 p-4 rounded-lg">
         <h3 class="font-semibold"><%= pluralize(meal_plan.errors.count, "error") %> prevented this meal plan from being saved:</h3>
@@ -55,9 +55,82 @@
       </div>
     <% end %>
 
-    <div class="flex justify-end gap-3 pt-4 border-t border-warm-200">
-      <%= link_to "Cancel", meal_plan.persisted? ? meal_plan_path(meal_plan) : meal_plans_path, class: "px-4 py-2 text-warm-700 hover:text-warm-900 text-sm font-medium" %>
-      <%= f.submit meal_plan.persisted? ? "Update Meal Plan" : "Create Meal Plan", class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium cursor-pointer" %>
+    <% if meal_plan.persisted? %>
+      <div class="flex justify-end gap-3 pt-4 border-t border-warm-200">
+        <%= link_to "Cancel", meal_plan_path(meal_plan), class: "px-4 py-2 text-warm-700 hover:text-warm-900 text-sm font-medium" %>
+        <%= f.submit "Update Meal Plan", class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium cursor-pointer" %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% unless meal_plan.persisted? %>
+    <div class="px-6 pb-6 -mt-2 space-y-4">
+      <div class="border-t border-warm-200 pt-4">
+        <button type="button"
+          data-action="ai-generate#toggle"
+          data-ai-generate-target="toggleButton"
+          class="group flex items-center gap-3 w-full p-3 rounded-lg border-2 border-dashed border-warm-300 hover:border-primary-400 hover:bg-primary-50/50 transition-all">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full bg-warm-100 group-hover:bg-primary-100 transition-colors" data-ai-generate-target="iconWrap">
+            <svg class="w-5 h-5 text-warm-500 group-hover:text-primary-600 transition-colors" data-ai-generate-target="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+            </svg>
+          </div>
+          <div class="flex-1 text-left">
+            <span class="text-sm font-semibold text-warm-800 group-hover:text-primary-700">Generate with AI</span>
+            <p class="text-xs text-warm-500">Let AI fill your meal plan with optimized recipes</p>
+          </div>
+          <svg class="w-5 h-5 text-warm-400 transition-transform duration-200" data-ai-generate-target="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      <div data-ai-generate-target="panel" class="hidden">
+        <div class="bg-primary-50/50 rounded-lg border border-primary-200 p-4 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-warm-700 mb-2">Preferences</label>
+            <div class="flex flex-wrap gap-2" data-ai-generate-target="chips">
+              <% MealPlanGenerator::PREFERENCE_OPTIONS.each do |key, _| %>
+                <button type="button"
+                  data-action="ai-generate#toggleChip"
+                  data-preference-key="<%= key %>"
+                  class="ai-preference-chip inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all
+                    border-warm-300 bg-white text-warm-600 hover:border-primary-400 hover:text-primary-600">
+                  <%= preference_chip_label(key) %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+
+          <div>
+            <label for="ai_special_requests" class="block text-sm font-medium text-warm-700 mb-1">Special requests</label>
+            <textarea id="ai_special_requests" rows="2"
+              class="w-full rounded-lg border-warm-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              placeholder="e.g., Include chicken thigh recipes at least 3 times, avoid seafood on Monday..."
+              data-ai-generate-target="specialRequests"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <%= link_to "Cancel", meal_plans_path, class: "px-4 py-2 text-warm-700 hover:text-warm-900 text-sm font-medium" %>
+
+        <div data-ai-generate-target="manualSubmit">
+          <button type="submit" form="<%= dom_id(meal_plan, :form) %>" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium cursor-pointer">
+            Create Meal Plan
+          </button>
+        </div>
+
+        <div data-ai-generate-target="aiSubmit" class="hidden">
+          <button type="button" data-action="ai-generate#submitWithAi"
+            class="inline-flex items-center gap-2 bg-primary-600 text-white px-5 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            </svg>
+            Generate with AI
+          </button>
+        </div>
+      </div>
     </div>
   <% end %>
 </div>

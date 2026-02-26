@@ -193,6 +193,104 @@ class Accounts::MealPlansControllerTest < ActionDispatch::IntegrationTest
     assert_select "[draggable='true'][data-meal-id]"
   end
 
+  # === AI Generation tests ===
+
+  test "start_generate creates plan and redirects to generate_status" do
+    sign_in_as(@session)
+
+    start_date = 3.months.from_now.to_date
+    end_date = start_date + 6.days
+
+    assert_difference [ "MealPlan.count", "AiTaskStatus.count" ] do
+      post "#{account_path_prefix}/meal_plans/start_generate", params: {
+        meal_plan: {
+          name: "AI Generated Plan",
+          start_date: start_date,
+          end_date: end_date,
+          daily_calories_target: 2000
+        },
+        dietary_profile_ids: [ dietary_profiles(:dad).id ],
+        ai_preferences: %w[no_repeats quick_weekday],
+        ai_special_requests: "Avoid seafood on Monday"
+      }
+    end
+
+    new_plan = MealPlan.order(created_at: :desc).first
+    assert_equal "AI Generated Plan", new_plan.name
+    assert_equal 7, new_plan.days.count
+    assert_equal 1, new_plan.participants.count
+
+    task = AiTaskStatus.order(created_at: :desc).first
+    assert_equal "meal_plan_generation", task.task_type
+    assert task.pending?
+
+    assert_redirected_to "#{account_path_prefix}/meal_plans/generate_status?meal_plan_id=#{new_plan.id}&task_id=#{task.id}"
+  end
+
+  test "start_generate rejects invalid plan params" do
+    sign_in_as(@session)
+
+    assert_no_difference "MealPlan.count" do
+      post "#{account_path_prefix}/meal_plans/start_generate", params: {
+        meal_plan: { name: "Bad Plan", start_date: "", end_date: "" }
+      }
+    end
+
+    assert_response :unprocessable_entity
+  end
+
+  test "generate_status shows progress for pending task" do
+    sign_in_as(@session)
+    task = ai_task_statuses(:processing_task)
+
+    get "#{account_path_prefix}/meal_plans/generate_status", params: {
+      task_id: task.id,
+      meal_plan_id: @meal_plan.id
+    }
+
+    assert_response :success
+    assert_select "h1", /Generating/
+  end
+
+  test "generate_status redirects to plan on completion" do
+    sign_in_as(@session)
+    task = @account.ai_task_statuses.create!(task_type: "meal_plan_generation")
+    task.mark_processing!
+    task.mark_completed!(result: { meals_assigned: 28 })
+
+    get "#{account_path_prefix}/meal_plans/generate_status", params: {
+      task_id: task.id,
+      meal_plan_id: @meal_plan.id
+    }
+
+    assert_redirected_to "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+  end
+
+  test "generate_status redirects to plan with alert on failure" do
+    sign_in_as(@session)
+    task = @account.ai_task_statuses.create!(task_type: "meal_plan_generation")
+    task.mark_processing!
+    task.mark_failed!(error_message: "Not enough recipes")
+
+    get "#{account_path_prefix}/meal_plans/generate_status", params: {
+      task_id: task.id,
+      meal_plan_id: @meal_plan.id
+    }
+
+    assert_redirected_to "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_equal "Generation failed: Not enough recipes", flash[:alert]
+  end
+
+  test "new form includes AI generate toggle" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/new"
+    assert_response :success
+    assert_select "[data-controller*='ai-generate']"
+    assert_select "[data-ai-generate-target='toggleButton']"
+  end
+
+  # === Calendar view tests ===
+
   test "show renders week navigation for long plans" do
     sign_in_as(@session)
 
