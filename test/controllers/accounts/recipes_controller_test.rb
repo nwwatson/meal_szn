@@ -459,4 +459,61 @@ class Accounts::RecipesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "a[href=?]", import_url_recipes_path
   end
+
+  # --- Quick Entry ---
+
+  test "quick_entry shows text input form" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes/quick_entry"
+    assert_response :success
+    assert_select "h1", "Quick Recipe Entry"
+    assert_select "textarea"
+  end
+
+  test "start_quick_entry redirects when description is blank" do
+    sign_in_as(@session)
+    post "#{account_path_prefix}/recipes/start_quick_entry", params: { description: "" }
+    assert_redirected_to quick_entry_recipes_path
+    assert_equal "Please describe the recipe you want to create.", flash[:alert]
+  end
+
+  test "start_quick_entry creates task and redirects to status" do
+    sign_in_as(@session)
+
+    assert_difference "AiTaskStatus.count" do
+      post "#{account_path_prefix}/recipes/start_quick_entry", params: { description: "bacon wrapped chicken" }
+    end
+
+    task = AiTaskStatus.order(created_at: :desc).first
+    assert_equal "recipe_generate", task.task_type
+    assert_redirected_to import_status_recipes_path(task_id: task.id)
+  end
+
+  test "import_status redirects to quick_entry when generate task failed" do
+    sign_in_as(@session)
+    task = @account.ai_task_statuses.create!(task_type: "recipe_generate")
+    task.mark_processing!
+    task.mark_failed!(error_message: "Generation failed")
+
+    get "#{account_path_prefix}/recipes/import_status", params: { task_id: task.id }
+    assert_redirected_to quick_entry_recipes_path
+    assert_match(/Generation failed/, flash[:alert])
+  end
+
+  test "quick_entry shows diet badge when account has default diet" do
+    sign_in_as(@session)
+    @account.update!(default_diet_name: "Ketogenic (Keto)")
+
+    get "#{account_path_prefix}/recipes/quick_entry"
+    assert_response :success
+    assert_select "strong", "Ketogenic (Keto)"
+  end
+
+  test "quick_entry page links to other import methods" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes/quick_entry"
+    assert_response :success
+    assert_select "a[href=?]", import_url_recipes_path
+    assert_select "a[href=?]", import_photo_recipes_path
+  end
 end
