@@ -61,7 +61,7 @@ class Accounts::Api::V1::MealPlanning::RecipesControllerTest < ActionDispatch::I
     assert_response :not_found
   end
 
-  test "meal planning response includes ingredients summary" do
+  test "meal planning response includes essential fields only" do
     get "/#{@account.external_account_id}/api/v1/meal_planning/recipes",
         headers: auth_header(@read_token)
 
@@ -69,18 +69,12 @@ class Accounts::Api::V1::MealPlanning::RecipesControllerTest < ActionDispatch::I
     json = JSON.parse(response.body)
 
     recipe_data = json["recipes"].find { |r| r["id"] == @recipe.id }
-    assert_includes recipe_data["ingredients_summary"], "Salmon"
-  end
-
-  test "meal planning response includes recipe URL" do
-    get "/#{@account.external_account_id}/api/v1/meal_planning/recipes",
-        headers: auth_header(@read_token)
-
-    assert_response :success
-    json = JSON.parse(response.body)
-
-    recipe_data = json["recipes"].find { |r| r["id"] == @recipe.id }
-    assert_includes recipe_data["url"], @account.external_account_id.to_s
-    assert_includes recipe_data["url"], @recipe.id
+    assert_includes recipe_data.keys, "title"
+    assert_includes recipe_data.keys, "category"
+    assert_includes recipe_data.keys, "servings"
+    assert_includes recipe_data.keys, "tags"
+    # Trimmed fields should not be present (reduces AI token costs)
+    assert_nil recipe_data["url"]
+    assert_nil recipe_data["ingredients_summary"]
   end
 end

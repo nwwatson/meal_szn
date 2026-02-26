@@ -95,9 +95,7 @@ class Recipe < ApplicationRecord
       prep_time: prep_time,
       cook_time: cook_time,
       nutrition_per_serving: nutrition_data&.to_meal_planning_response,
-      tags: tags.pluck(:name),
-      ingredients_summary: ingredients_summary,
-      url: "/#{account.external_account_id}/recipes/#{id}"
+      tags: tags.pluck(:name)
     }
   end
 end
