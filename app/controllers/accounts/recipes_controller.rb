@@ -102,6 +102,59 @@ class Accounts::RecipesController < ApplicationController
     end
   end
 
+  def import_url
+    @url = params[:url]
+  end
+
+  def start_import
+    url = params[:url].to_s.strip
+    if url.blank?
+      redirect_to import_url_recipes_path, alert: "Please enter a URL."
+      return
+    end
+
+    task = Current.account.ai_task_statuses.create!(task_type: "recipe_import")
+    RecipeImportJob.perform_later(task.id, url: url)
+
+    redirect_to import_status_recipes_path(task_id: task.id)
+  end
+
+  def import_status
+    @task = Current.account.ai_task_statuses.find(params[:task_id])
+
+    if @task.completed?
+      redirect_to import_review_recipes_path(task_id: @task.id)
+    elsif @task.failed?
+      redirect_to import_url_recipes_path, alert: "Import failed: #{@task.error_message}"
+    end
+  end
+
+  def import_review
+    @task = Current.account.ai_task_statuses.find(params[:task_id])
+    redirect_to import_url_recipes_path, alert: "Import is not yet complete." unless @task.completed?
+
+    result = @task.result.deep_symbolize_keys
+    @recipe = Current.account.recipes.build(
+      title: result[:title],
+      description: result[:description],
+      servings: result[:servings],
+      prep_time: result[:prep_time],
+      cook_time: result[:cook_time],
+      source: result[:source]
+    )
+
+    build_ingredients_from_import(result[:ingredients] || [])
+    build_instructions_from_import(result[:instructions] || [])
+    build_nutrition_from_import(result[:nutrition])
+
+    @recipe.ingredients.build if @recipe.ingredients.empty?
+    @recipe.instructions.build if @recipe.instructions.empty?
+    @recipe.build_nutrition_data unless @recipe.nutrition_data
+
+    set_unit_options
+    render :new
+  end
+
   def search_usda
     query = params[:query].to_s.strip
     if query.present?
@@ -150,6 +203,51 @@ class Accounts::RecipesController < ApplicationController
   def apply_calculated_nutrition(result)
     nutrition = @recipe.nutrition_data || @recipe.build_nutrition_data
     nutrition.update!(result.nutrition_data)
+  end
+
+  def build_ingredients_from_import(ingredients)
+    ingredients.each_with_index do |text, index|
+      parsed = parse_ingredient_text(text.to_s)
+      @recipe.ingredients.build(
+        name: parsed[:name],
+        quantity: parsed[:quantity],
+        unit: parsed[:unit],
+        display_order: index
+      )
+    end
+  end
+
+  def build_instructions_from_import(instructions)
+    instructions.each do |instr|
+      instr = instr.is_a?(Hash) ? instr.deep_symbolize_keys : { step_number: 1, instruction: instr.to_s }
+      @recipe.instructions.build(
+        step_number: instr[:step_number],
+        instruction: instr[:instruction]
+      )
+    end
+  end
+
+  def build_nutrition_from_import(nutrition)
+    return unless nutrition.is_a?(Hash)
+    nutrition = nutrition.deep_symbolize_keys
+    @recipe.build_nutrition_data(
+      calories: nutrition[:calories],
+      fat: nutrition[:fat],
+      protein: nutrition[:protein],
+      carbs: nutrition[:carbs],
+      fiber: nutrition[:fiber],
+      sodium: nutrition[:sodium]
+    )
+  end
+
+  def parse_ingredient_text(text)
+    # Match patterns like "2 cups almond flour" or "1/2 tsp salt"
+    match = text.match(/\A([\d\s\/½¼¾⅓⅔⅛.]+)?\s*(#{Ingredient::UNITS_PATTERN})?\s*(.+)\z/i)
+    if match
+      { quantity: match[1]&.strip, unit: match[2]&.strip&.downcase, name: match[3]&.strip }
+    else
+      { quantity: nil, unit: nil, name: text.strip }
+    end
   end
 
   def recipe_params

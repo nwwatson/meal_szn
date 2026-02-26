@@ -96,4 +96,17 @@ class RecipeImport::JsonLdParserTest < ActiveSupport::TestCase
     assert_equal 2, result[:instructions].length
     assert_equal "Step one", result[:instructions].first[:instruction]
   end
+
+  test "handles invalid JSON gracefully" do
+    html = <<~HTML
+      <html><head>
+      <script type="application/ld+json">
+      {not valid json at all}
+      </script>
+      </head><body></body></html>
+    HTML
+
+    result = RecipeImport::JsonLdParser.new(html).parse
+    assert_nil result
+  end
 end

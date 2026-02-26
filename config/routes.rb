@@ -47,6 +47,10 @@ Rails.application.routes.draw do
       end
       collection do
         get :search_usda
+        get :import_url
+        post :start_import
+        get :import_status
+        get :import_review
       end
     end
 

@@ -4,6 +4,8 @@ class Ingredient < ApplicationRecord
   STANDARD_UNITS = %w[cups tbsp tsp oz lb fl\ oz quart gallon pint].freeze
   METRIC_UNITS = %w[ml l g kg].freeze
   UNIVERSAL_UNITS = %w[pinch dash whole slice clove piece].freeze
+  ALL_UNITS = (STANDARD_UNITS + METRIC_UNITS + UNIVERSAL_UNITS).freeze
+  UNITS_PATTERN = Regexp.union(ALL_UNITS).freeze
 
   def self.grouped_unit_options(unit_system = "standard")
     if unit_system == "metric"

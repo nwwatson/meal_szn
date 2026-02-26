@@ -81,6 +81,21 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 
 **Subclassing pattern:** Implement `#execute(**args)` returning a Hash. Call `update_progress(n)` for incremental updates. Error handling and status transitions are automatic.
 
+### Recipe Import Pipeline
+
+URL-based recipe import lives in `app/services/recipe_import/`. The pipeline:
+
+1. **`UrlFetcher`** — HTTP fetch with redirect following (max 5), timeouts, user-agent
+2. **`JsonLdParser`** — Primary extraction: parses `<script type="application/ld+json">` for schema.org Recipe data via Nokogiri. Handles `@graph` arrays, ISO 8601 durations, HowToStep objects.
+3. **`AiExtractor`** — Fallback: sends stripped page text to Claude via `Ai::Client.chat_with_tools` with an `extract_recipe` tool definition. Truncates to 12K chars.
+4. **`UrlImporter`** — Orchestrator: fetch → try JSON-LD → try AI → raise `ImportError`. Exposes `method_used` (`:json_ld` or `:ai`).
+
+**Job:** `RecipeImportJob < AiBaseJob` runs the pipeline asynchronously, storing results in `AiTaskStatus.result`.
+
+**Controller flow:** `import_url` (form) → `start_import` (creates task, enqueues job) → `import_status` (polls with reload) → `import_review` (pre-fills recipe form from extracted data).
+
+**Testing pattern:** `UrlImporter` exposes a `fetch_html` private method that the test subclass (`TestableImporter`) overrides to return fixture HTML. `AiExtractor` accepts an `ai_client:` kwarg for injecting a fake client.
+
 ### Design System
 
 Defined in `app/assets/tailwind/application.css` using Tailwind v4 `@theme` block.
