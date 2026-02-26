@@ -323,4 +323,84 @@ class Accounts::RecipesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "select[name='recipe[nutrition_mode]']"
   end
+
+  # --- Import URL ---
+
+  test "import_url shows URL input form" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes/import_url"
+    assert_response :success
+    assert_select "h1", "Import Recipe from URL"
+    assert_select "input[type='url']"
+  end
+
+  test "start_import redirects to import_url when URL is blank" do
+    sign_in_as(@session)
+    post "#{account_path_prefix}/recipes/start_import", params: { url: "" }
+    assert_redirected_to import_url_recipes_path
+    assert_equal "Please enter a URL.", flash[:alert]
+  end
+
+  test "start_import creates task and redirects to status" do
+    sign_in_as(@session)
+
+    assert_difference "AiTaskStatus.count" do
+      post "#{account_path_prefix}/recipes/start_import", params: { url: "https://example.com/recipe" }
+    end
+
+    task = AiTaskStatus.order(created_at: :desc).first
+    assert_equal "recipe_import", task.task_type
+    assert_redirected_to import_status_recipes_path(task_id: task.id)
+  end
+
+  test "import_status shows spinner for pending task" do
+    sign_in_as(@session)
+    task = @account.ai_task_statuses.create!(task_type: "recipe_import")
+
+    get "#{account_path_prefix}/recipes/import_status", params: { task_id: task.id }
+    assert_response :success
+    assert_select "h1", "Importing Recipe..."
+  end
+
+  test "import_status redirects to review when task completed" do
+    sign_in_as(@session)
+    task = @account.ai_task_statuses.create!(task_type: "recipe_import")
+    task.mark_processing!
+    task.mark_completed!(result: { title: "Test" })
+
+    get "#{account_path_prefix}/recipes/import_status", params: { task_id: task.id }
+    assert_redirected_to import_review_recipes_path(task_id: task.id)
+  end
+
+  test "import_status redirects to import_url when task failed" do
+    sign_in_as(@session)
+    task = @account.ai_task_statuses.create!(task_type: "recipe_import")
+    task.mark_processing!
+    task.mark_failed!(error_message: "Something went wrong")
+
+    get "#{account_path_prefix}/recipes/import_status", params: { task_id: task.id }
+    assert_redirected_to import_url_recipes_path
+    assert_match(/Something went wrong/, flash[:alert])
+  end
+
+  test "import_review renders new recipe form with prefilled data" do
+    sign_in_as(@session)
+    task = @account.ai_task_statuses.create!(task_type: "recipe_import")
+    task.mark_processing!
+    task.mark_completed!(result: {
+      title: "Imported Recipe",
+      description: "A great recipe",
+      servings: 4,
+      prep_time: 10,
+      cook_time: 20,
+      source: "https://example.com/recipe",
+      ingredients: [ "2 cups almond flour", "3 eggs" ],
+      instructions: [ { step_number: 1, instruction: "Mix" }, { step_number: 2, instruction: "Bake" } ],
+      nutrition: { calories: 300, fat: 20, protein: 15, carbs: 5 }
+    })
+
+    get "#{account_path_prefix}/recipes/import_review", params: { task_id: task.id }
+    assert_response :success
+    assert_select "h1", "New Recipe"
+  end
 end
