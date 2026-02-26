@@ -173,18 +173,19 @@ class MealPlanGeneratorTest < ActiveSupport::TestCase
   def build_ai_response(plan, meal_types: %w[breakfast lunch dinner snack])
     salmon = recipes(:one)
     eggs = recipes(:two)
-    recipe_ids = [salmon.id, eggs.id]
+    recipe_ids = [ salmon.id, eggs.id ]
 
+    # Use symbol keys to match real Anthropic gem behavior (tool_block.input.to_h returns symbols)
     {
-      "days" => plan.days.order(:day_number).map do |day|
+      days: plan.days.order(:day_number).map do |day|
         {
-          "day_number" => day.day_number,
-          "meals" => meal_types.map do |mt|
-            { "meal_type" => mt, "recipe_id" => recipe_ids.sample, "servings" => 1.0 }
+          day_number: day.day_number,
+          meals: meal_types.map do |mt|
+            { meal_type: mt, recipe_id: recipe_ids.sample, servings: 1.0 }
           end
         }
       end,
-      "reasoning" => "Test plan with varied meals"
+      reasoning: "Test plan with varied meals"
     }
   end
 end

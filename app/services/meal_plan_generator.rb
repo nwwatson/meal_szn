@@ -247,6 +247,7 @@ class MealPlanGenerator
   end
 
   def populate_meal_plan(ai_response, recipes)
+    ai_response = ai_response.deep_stringify_keys
     recipe_lookup = recipes.index_by(&:id)
     days_lookup = @meal_plan.days.index_by(&:day_number)
 
@@ -255,7 +256,7 @@ class MealPlanGenerator
       next unless day
 
       Array(day_data["meals"]).each do |meal_data|
-        recipe = recipe_lookup[meal_data["recipe_id"]]
+        recipe = recipe_lookup[meal_data["recipe_id"].to_s]
         next unless recipe
 
         meal_type = meal_data["meal_type"]
