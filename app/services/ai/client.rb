@@ -94,13 +94,13 @@ module Ai
 
     def extract_text(response)
       response.content
-        .select { |block| block.type == "text" }
+        .select { |block| block.type.to_s == "text" }
         .map(&:text)
         .join
     end
 
     def extract_tool_use(response)
-      tool_block = response.content.find { |block| block.type == "tool_use" }
+      tool_block = response.content.find { |block| block.type.to_s == "tool_use" }
       raise ApiError, "No tool_use block in response" unless tool_block
 
       { name: tool_block.name, input: tool_block.input.to_h }
