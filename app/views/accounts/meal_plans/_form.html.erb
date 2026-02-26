@@ -1,5 +1,5 @@
 <div class="bg-white rounded-lg shadow" data-controller="meal-plan-form ai-generate">
-  <%= form_with(model: meal_plan, url: meal_plan.persisted? ? meal_plan_path(meal_plan) : meal_plans_path, class: "p-6 space-y-6", id: dom_id(meal_plan, :form)) do |f| %>
+  <%= form_with(model: meal_plan, url: meal_plan.persisted? ? meal_plan_path(meal_plan) : meal_plans_path, class: "p-6 space-y-6", id: dom_id(meal_plan, :form), data: { ai_generate_target: "form" }) do |f| %>
     <% if meal_plan.errors.any? %>
       <div class="bg-red-50 text-red-700 p-4 rounded-lg">
         <h3 class="font-semibold"><%= pluralize(meal_plan.errors.count, "error") %> prevented this meal plan from being saved:</h3>
