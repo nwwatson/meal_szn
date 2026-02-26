@@ -68,3 +68,9 @@
 .nav-warm {
   background: linear-gradient(135deg, #7d381c 0%, #a14722 40%, #c2582a 100%);
 }
+
+/* Macro donut chart — ring mask */
+.macro-donut {
+  -webkit-mask: radial-gradient(circle, transparent 55%, black 56%);
+  mask: radial-gradient(circle, transparent 55%, black 56%);
+}

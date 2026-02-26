@@ -47,13 +47,24 @@
 
     <% if @recipe.nutrition_data %>
       <div class="p-6 border-b border-warm-200 bg-warm-50">
-        <h2 class="text-sm font-semibold text-warm-500 uppercase tracking-wider mb-3">Nutrition per Serving</h2>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.calories %></span><br><span class="text-xs text-warm-500">Calories</span></div>
-          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.fat %>g</span><br><span class="text-xs text-warm-500">Fat</span></div>
-          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.protein %>g</span><br><span class="text-xs text-warm-500">Protein</span></div>
-          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.net_carbs %>g</span><br><span class="text-xs text-warm-500">Net Carbs</span></div>
-          <div><span class="text-2xl font-display font-bold text-warm-900"><%= @recipe.nutrition_data.fiber %>g</span><br><span class="text-xs text-warm-500">Fiber</span></div>
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-semibold text-warm-500 uppercase tracking-wider">Nutrition per Serving</h2>
+          <% if (badge = diet_compatibility_badge(@recipe.nutrition_data)) %>
+            <div class="flex gap-1.5"><%= badge %></div>
+          <% end %>
+        </div>
+        <div class="flex items-start gap-8">
+          <% nd = @recipe.nutrition_data %>
+          <% if nd.fat.present? && nd.protein.present? && nd.net_carbs.present? %>
+            <%= macro_donut_chart(fat_g: nd.fat, protein_g: nd.protein, carbs_g: nd.net_carbs) %>
+          <% end %>
+          <div class="flex-1 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.calories %></span><br><span class="text-xs text-warm-500">Calories</span></div>
+            <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.fat %>g</span><br><span class="text-xs text-warm-500">Fat</span></div>
+            <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.protein %>g</span><br><span class="text-xs text-warm-500">Protein</span></div>
+            <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.net_carbs %>g</span><br><span class="text-xs text-warm-500">Net Carbs</span></div>
+            <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.fiber %>g</span><br><span class="text-xs text-warm-500">Fiber</span></div>
+          </div>
         </div>
       </div>
     <% end %>
