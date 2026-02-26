@@ -143,14 +143,30 @@ class Accounts::RecipesController < ApplicationController
     redirect_to import_status_recipes_path(task_id: task.id)
   end
 
+  def quick_entry
+    @description = params[:description]
+  end
+
+  def start_quick_entry
+    description = params[:description].to_s.strip
+    if description.blank?
+      redirect_to quick_entry_recipes_path, alert: "Please describe the recipe you want to create."
+      return
+    end
+
+    task = Current.account.ai_task_statuses.create!(task_type: "recipe_generate")
+    RecipeGenerateJob.perform_later(task.id, description: description, diet_name: Current.account.default_diet_name)
+
+    redirect_to import_status_recipes_path(task_id: task.id)
+  end
+
   def import_status
     @task = Current.account.ai_task_statuses.find(params[:task_id])
 
     if @task.completed?
       redirect_to import_review_recipes_path(task_id: @task.id)
     elsif @task.failed?
-      failure_path = @task.task_type == "recipe_photo_import" ? import_photo_recipes_path : import_url_recipes_path
-      redirect_to failure_path, alert: "Import failed: #{@task.error_message}"
+      redirect_to failure_path_for(@task), alert: "Import failed: #{@task.error_message}"
     end
   end
 
@@ -198,6 +214,16 @@ class Accounts::RecipesController < ApplicationController
   end
 
   private
+
+  FAILURE_PATHS = {
+    "recipe_photo_import" => :import_photo_recipes_path,
+    "recipe_generate" => :quick_entry_recipes_path
+  }.freeze
+
+  def failure_path_for(task)
+    method_name = FAILURE_PATHS[task.task_type] || :import_url_recipes_path
+    send(method_name)
+  end
 
   def set_recipe
     @recipe = Current.account.recipes

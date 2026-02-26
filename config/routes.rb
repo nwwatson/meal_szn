@@ -51,6 +51,8 @@ Rails.application.routes.draw do
         post :start_import
         get :import_photo
         post :start_photo_import
+        get :quick_entry
+        post :start_quick_entry
         get :import_status
         get :import_review
       end
