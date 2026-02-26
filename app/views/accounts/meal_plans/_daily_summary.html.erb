@@ -1,0 +1,23 @@
+<%# locals: (day:, daily_calories_target:) %>
+<%
+  total_cal = day.total_calories.round
+  total_fat = day.total_fat.round
+  total_protein = day.total_protein.round
+  total_carbs = day.total_net_carbs.round
+  status = calorie_status(total_cal, daily_calories_target)
+%>
+<div class="p-2 text-center">
+  <% if status %>
+    <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold <%= status[:bg] %> <%= status[:text] %> <%= status[:border] %> border">
+      <%= total_cal %> / <%= daily_calories_target %> cal
+      <span class="<%= status[:text] %>"><%= status[:label] %></span>
+    </div>
+  <% else %>
+    <span class="text-xs font-semibold text-warm-700 tabular-nums"><%= total_cal %> cal</span>
+  <% end %>
+  <div class="flex justify-center gap-2 mt-1 text-[10px] text-warm-500 tabular-nums">
+    <span>F:<%= total_fat %>g</span>
+    <span>P:<%= total_protein %>g</span>
+    <span>C:<%= total_carbs %>g</span>
+  </div>
+</div>

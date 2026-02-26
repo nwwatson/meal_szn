@@ -159,4 +159,59 @@ class Accounts::MealPlansControllerTest < ActionDispatch::IntegrationTest
     new_plan = MealPlan.order(created_at: :desc).first
     assert_equal @meal_plan.participants.count, new_plan.participants.count
   end
+
+  # === Calendar view tests ===
+
+  test "show renders desktop calendar grid with drag controller" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_response :success
+    assert_select "[data-controller='calendar-drag']"
+    assert_select "[data-drop-zone]"
+  end
+
+  test "show renders mobile swipeable view" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_response :success
+    assert_select "[data-controller='calendar-swipe']"
+    assert_select "[data-calendar-swipe-target='dayPanel']"
+    assert_select "[data-calendar-swipe-target='dayTab']"
+  end
+
+  test "show renders daily summary with macro totals" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_response :success
+    assert_select ".tabular-nums"
+  end
+
+  test "show renders draggable recipe cards" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_response :success
+    assert_select "[draggable='true'][data-meal-id]"
+  end
+
+  test "show renders week navigation for long plans" do
+    sign_in_as(@session)
+
+    start = 3.months.from_now.to_date
+    user = users(:one)
+    long_plan = @account.meal_plans.create!(
+      name: "Two Week Plan",
+      user: user,
+      start_date: start,
+      end_date: start + 13.days,
+      daily_calories_target: 2000
+    )
+    (start..(start + 13.days)).each_with_index do |date, i|
+      long_plan.days.create!(date: date, day_number: i + 1)
+    end
+
+    get "#{account_path_prefix}/meal_plans/#{long_plan.id}"
+    assert_response :success
+    assert_select "a", text: /Next Week/
+    assert_select "span", text: /Week 1 of 2/
+  end
 end

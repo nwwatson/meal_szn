@@ -17,10 +17,26 @@ class Accounts::MealPlanMealsController < ApplicationController
     end
   end
 
+  def move
+    meal = find_meal(params[:id])
+    target_day = @meal_plan.days.find(params[:target_day_id])
+
+    meal.meal_plan_day = target_day
+    meal.meal_type = params[:target_meal_type] if params[:target_meal_type].present?
+
+    respond_to do |format|
+      if meal.save
+        format.html { redirect_back fallback_location: meal_plan_path(@meal_plan), notice: "Meal moved." }
+        format.json { render json: { status: "ok", meal_id: meal.id } }
+      else
+        format.html { redirect_back fallback_location: meal_plan_path(@meal_plan), alert: "Could not move meal." }
+        format.json { render json: { status: "error", errors: meal.errors.full_messages }, status: :unprocessable_entity }
+      end
+    end
+  end
+
   def destroy
-    meal = MealPlanMeal.joins(meal_plan_day: :meal_plan)
-      .where(meal_plans: { account_id: Current.account.id, id: @meal_plan.id })
-      .find(params[:id])
+    meal = find_meal(params[:id])
     meal.destroy
 
     respond_to do |format|
@@ -33,6 +49,12 @@ class Accounts::MealPlanMealsController < ApplicationController
 
   def set_meal_plan
     @meal_plan = Current.account.meal_plans.find(params[:meal_plan_id])
+  end
+
+  def find_meal(id)
+    MealPlanMeal.joins(meal_plan_day: :meal_plan)
+      .where(meal_plans: { account_id: Current.account.id, id: @meal_plan.id })
+      .find(id)
   end
 
   def meal_params
