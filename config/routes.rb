@@ -66,6 +66,10 @@ Rails.application.routes.draw do
       member do
         post :duplicate
       end
+      collection do
+        post :start_generate
+        get :generate_status
+      end
       resource :shopping_list, only: %i[show create destroy], controller: "shopping_lists"
       resources :meals, only: %i[create destroy], controller: "meal_plan_meals" do
         member do

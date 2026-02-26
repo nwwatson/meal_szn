@@ -29,3 +29,18 @@ eggs_nutrition:
   magnesium: 15
   created_at: "<%= now %>"
   updated_at: "<%= now %>"
+
+cauliflower_nutrition:
+  id: nutrition_cauliflower
+  recipe_id: recipe_cauliflower
+  calories: 180
+  fat: 12.0
+  protein: 8.0
+  carbs: 6.0
+  fiber: 3.0
+  net_carbs: 3.0
+  sodium: 290
+  potassium: 350
+  magnesium: 20
+  created_at: "<%= now %>"
+  updated_at: "<%= now %>"

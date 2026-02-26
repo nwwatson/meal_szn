@@ -98,6 +98,20 @@ URL-based recipe import lives in `app/services/recipe_import/`. The pipeline:
 
 **Testing pattern:** `UrlImporter` exposes a `fetch_html` private method that the test subclass (`TestableImporter`) overrides to return fixture HTML. `AiExtractor` and `PhotoExtractor` accept an `ai_client:` kwarg for injecting a fake client.
 
+### AI Meal Plan Generation
+
+`MealPlanGenerator` (`app/services/meal_plan_generator.rb`) orchestrates AI-powered meal plan creation.
+
+**Flow:** User creates a plan (name, dates, participants) → selects "Generate with AI" with preference chips → `MealPlanGenerationJob` runs async → `MealPlanGenerator` fetches eligible recipes (must have nutrition data), calls Claude via `chat_with_tools` with an `assign_meals` tool → populates `MealPlanMeal` records → `PortionCalculator` creates per-participant portions.
+
+**Key components:**
+- `MealPlanGenerator` — accepts `ai_client:` kwarg for test injection. Validates minimum 3 recipes with nutrition data. Supports preference options (`PREFERENCE_OPTIONS` constant) and freeform special requests.
+- `MealPlanGenerationJob < AiBaseJob` — task_type: `meal_plan_generation`. Args: `meal_plan_id:`, `preferences:`, `special_requests:`.
+- Controller actions: `start_generate` (POST, creates plan + enqueues job) and `generate_status` (GET, polls with page reload).
+- Stimulus controller: `ai_generate_controller.js` — toggles AI panel, manages preference chip selection, rewrites form action to `start_generate`.
+
+**Testing:** Uses `FakeAiClient` class (defined in test file) that accepts a canned response. No API mocking needed.
+
 ### Design System
 
 Defined in `app/assets/tailwind/application.css` using Tailwind v4 `@theme` block.

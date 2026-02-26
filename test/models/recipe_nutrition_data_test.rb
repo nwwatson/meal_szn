@@ -14,23 +14,15 @@ class RecipeNutritionDataTest < ActiveSupport::TestCase
   end
 
   test "calculates net_carbs from carbs and fiber" do
-    recipe = recipes(:side_dish)
-    nutrition = RecipeNutritionData.create!(
-      recipe: recipe,
-      carbs: 10,
-      fiber: 3
-    )
+    nutrition = recipe_nutrition_data(:cauliflower_nutrition)
+    nutrition.update!(carbs: 10, fiber: 3)
 
     assert_equal 7, nutrition.net_carbs
   end
 
   test "net_carbs equals carbs when fiber is nil" do
-    recipe = recipes(:side_dish)
-    nutrition = RecipeNutritionData.create!(
-      recipe: recipe,
-      carbs: 10,
-      fiber: nil
-    )
+    nutrition = recipe_nutrition_data(:cauliflower_nutrition)
+    nutrition.update!(carbs: 10, fiber: nil)
 
     assert_equal 10, nutrition.net_carbs
   end

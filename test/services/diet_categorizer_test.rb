@@ -99,11 +99,13 @@ class DietCategorizerTest < ActiveSupport::TestCase
   end
 
   test "returns empty hash when no nutrition data" do
-    recipe_without_nutrition = recipes(:side_dish)
+    recipe_without_nutrition = @recipe.account.recipes.create!(title: "Bare Recipe", category: :dinner)
     assert_nil recipe_without_nutrition.nutrition_data
 
     scores = DietCategorizer.new(recipe_without_nutrition).calculate_scores
     assert_equal({}, scores)
+
+    recipe_without_nutrition.destroy
   end
 
   test "returns empty hash when calories are zero" do

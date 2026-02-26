@@ -59,6 +59,41 @@ class Accounts::MealPlansController < ApplicationController
     redirect_to meal_plans_path, notice: "Meal plan was successfully deleted."
   end
 
+  def start_generate
+    @meal_plan = Current.account.meal_plans.build(meal_plan_params)
+    @meal_plan.user = Current.user
+
+    unless @meal_plan.save
+      @available_profiles = Current.account.dietary_profiles.active.order(:name)
+      return render :new, status: :unprocessable_entity
+    end
+
+    generate_days(@meal_plan)
+    attach_participants(@meal_plan, params[:dietary_profile_ids])
+
+    task = Current.account.ai_task_statuses.create!(task_type: "meal_plan_generation")
+
+    MealPlanGenerationJob.perform_later(
+      task.id,
+      meal_plan_id: @meal_plan.id,
+      preferences: Array(params[:ai_preferences]).reject(&:blank?),
+      special_requests: params[:ai_special_requests].presence
+    )
+
+    redirect_to generate_status_meal_plans_path(task_id: task.id, meal_plan_id: @meal_plan.id)
+  end
+
+  def generate_status
+    @task = Current.account.ai_task_statuses.find(params[:task_id])
+    @meal_plan = Current.account.meal_plans.find(params[:meal_plan_id])
+
+    if @task.completed?
+      redirect_to meal_plan_path(@meal_plan), notice: "AI meal plan generated successfully!"
+    elsif @task.failed?
+      redirect_to meal_plan_path(@meal_plan), alert: "Generation failed: #{@task.error_message}"
+    end
+  end
+
   def duplicate
     new_start = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.current.beginning_of_week + 7.days
     new_end = params[:end_date].present? ? Date.parse(params[:end_date]) : new_start + (@meal_plan.duration_days - 1).days

@@ -49,4 +49,17 @@ module MealPlansHelper
   def calendar_weeks(days)
     days.sort_by(&:date).each_slice(7).to_a
   end
+
+  PREFERENCE_CHIP_LABELS = {
+    "no_repeats" => "No Repeats",
+    "quick_weekday" => "Quick Weekday Meals",
+    "skip_breakfast" => "Skip Breakfasts",
+    "skip_lunch" => "Skip Lunches",
+    "batch_cook_sunday" => "Batch Cook Sunday",
+    "high_variety" => "Max Variety"
+  }.freeze
+
+  def preference_chip_label(key)
+    PREFERENCE_CHIP_LABELS[key] || key.humanize
+  end
 end
