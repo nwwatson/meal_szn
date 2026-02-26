@@ -67,7 +67,11 @@ Rails.application.routes.draw do
         post :duplicate
       end
       resource :shopping_list, only: %i[show create destroy], controller: "shopping_lists"
-      resources :meals, only: %i[create destroy], controller: "meal_plan_meals"
+      resources :meals, only: %i[create destroy], controller: "meal_plan_meals" do
+        member do
+          patch :move
+        end
+      end
       resources :participants, only: %i[create destroy], controller: "meal_plan_participants"
       resources :portions, only: :update, controller: "meal_plan_meal_portions"
     end

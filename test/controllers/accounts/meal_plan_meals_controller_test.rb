@@ -47,7 +47,6 @@ class Accounts::MealPlanMealsControllerTest < ActionDispatch::IntegrationTest
   test "should auto-create portions for participants when creating meal" do
     sign_in_as(@session)
 
-    # The meal plan has 2 participants (dad + kid) from fixtures
     participant_count = @meal_plan.participants.count
     assert participant_count >= 2
 
@@ -67,5 +66,66 @@ class Accounts::MealPlanMealsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :redirect
+  end
+
+  test "should move meal to different day via JSON" do
+    sign_in_as(@session)
+    day_two = meal_plan_days(:day_two)
+
+    patch "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/move",
+      params: { target_day_id: day_two.id, target_meal_type: "breakfast" },
+      as: :json
+
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal "ok", json["status"]
+    assert_equal day_two.id, @meal.reload.meal_plan_day_id
+  end
+
+  test "should move meal to different meal type" do
+    sign_in_as(@session)
+
+    patch "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/move",
+      params: { target_day_id: @day.id, target_meal_type: "lunch" },
+      as: :json
+
+    assert_response :success
+    assert_equal "lunch", @meal.reload.meal_type
+  end
+
+  test "should move meal to different day and meal type" do
+    sign_in_as(@session)
+    day_two = meal_plan_days(:day_two)
+
+    patch "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/move",
+      params: { target_day_id: day_two.id, target_meal_type: "dinner" },
+      as: :json
+
+    assert_response :success
+    @meal.reload
+    assert_equal day_two.id, @meal.meal_plan_day_id
+    assert_equal "dinner", @meal.meal_type
+  end
+
+  test "move via HTML redirects back" do
+    sign_in_as(@session)
+    day_two = meal_plan_days(:day_two)
+
+    patch "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/move",
+      params: { target_day_id: day_two.id, target_meal_type: "breakfast" },
+      headers: { "HTTP_REFERER" => "#{account_path_prefix}/meal_plans/#{@meal_plan.id}" }
+
+    assert_response :redirect
+    assert_equal day_two.id, @meal.reload.meal_plan_day_id
+  end
+
+  test "move with invalid day returns not found" do
+    sign_in_as(@session)
+
+    patch "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/move",
+      params: { target_day_id: "nonexistent", target_meal_type: "breakfast" },
+      as: :json
+
+    assert_response :not_found
   end
 end
