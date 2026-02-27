@@ -51,6 +51,20 @@ All primary keys are string UUIDs. Key models:
 - `Access` — polymorphic resource-level permissions
 - `MagicLink`, `Session`, `AccessToken` — auth infrastructure
 
+### Pagination
+
+Uses Pagy gem (`config/initializers/pagy.rb`) with `pagy_countless` for "Load More" UX (no total count query). Default 12 items per page. `Pagy::Backend` included in `ApplicationController`, `Pagy::Frontend` in `ApplicationHelper`.
+
+### Recipe Browser
+
+The recipe index (`accounts/recipes#index`) supports search, sort, and filtering via model scopes on `Recipe`:
+- `by_search(query)` — SQLite LIKE on title, description, ingredient name (left_joins + group)
+- `by_cook_time(max_minutes)` — total prep+cook time filter
+- `by_calorie_range(min, max)` — joins nutrition_data
+- `sorted_by(sort)` — `newest` (default), `alphabetical`, `quickest`, `most_used` (COUNT DISTINCT meal_plan_meals)
+
+Pagination uses lazy Turbo Frames: each page renders a `turbo_frame_tag` for the next page with `loading: :lazy`, creating chained infinite scroll. The `_recipe_page` partial handles subsequent pages via Turbo Frame requests.
+
 ### API
 
 Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionController::API` (no views). Recipes expose `to_api_response` and `to_meal_planning_response` serialization methods directly on the model.

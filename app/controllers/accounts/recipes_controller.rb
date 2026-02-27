@@ -3,12 +3,27 @@ class Accounts::RecipesController < ApplicationController
   before_action :set_unit_options, only: %i[new edit create update resolve_ingredients]
 
   def index
-    @recipes = Current.account.recipes
+    recipes = Current.account.recipes
       .includes(:nutrition_data, :tags, image_attachment: :blob)
       .by_category(params[:category])
       .by_tags(params[:tags])
       .by_diet(params[:diet])
-      .order(created_at: :desc)
+      .by_search(params[:q])
+      .by_cook_time(params[:cook_time])
+      .by_calorie_range(params[:min_calories], params[:max_calories])
+      .sorted_by(params[:sort])
+
+    @pagy, @recipes = pagy_countless(recipes)
+    @recipe_count = Current.account.recipes
+      .by_category(params[:category])
+      .by_tags(params[:tags])
+      .by_diet(params[:diet])
+      .by_search(params[:q])
+      .by_cook_time(params[:cook_time])
+      .by_calorie_range(params[:min_calories], params[:max_calories])
+      .unscope(:group)
+      .distinct
+      .count
 
     @categories = Recipe.categories.keys.map do |category|
       [ category.titleize, category, Current.account.recipes.where(category: category).count ]
@@ -16,6 +31,11 @@ class Accounts::RecipesController < ApplicationController
 
     @tags = Current.account.tags.alphabetical.with_recipe_count
     @diet_filters = DietCategorizer::DIET_TAG_SLUGS.map { |name, slug| [ NutritionHelper::DIET_BADGE_STYLES.dig(slug, :label) || name, slug ] }
+    @active_filters = active_filters?
+
+    if request.headers["Turbo-Frame"] && params[:page].to_i > 1
+      render partial: "recipe_page", locals: { recipes: @recipes, pagy: @pagy }
+    end
   end
 
   def show
@@ -216,6 +236,13 @@ class Accounts::RecipesController < ApplicationController
   end
 
   private
+
+  def active_filters?
+    params[:q].present? || params[:category].present? || params[:tags].present? ||
+      params[:diet].present? || params[:cook_time].present? ||
+      params[:min_calories].present? || params[:max_calories].present? ||
+      (params[:sort].present? && params[:sort] != "newest")
+  end
 
   FAILURE_PATHS = {
     "recipe_photo_import" => :import_photo_recipes_path,

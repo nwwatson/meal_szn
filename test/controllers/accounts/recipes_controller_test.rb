@@ -529,4 +529,88 @@ class Accounts::RecipesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", import_url_recipes_path
     assert_select "a[href=?]", import_photo_recipes_path
   end
+
+  # --- Search, Sort, Filter, Pagination ---
+
+  test "search returns matching recipes" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { q: "salmon" }
+    assert_response :success
+    assert_select "h2", @recipe.title
+  end
+
+  test "search preserves query in input" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { q: "salmon" }
+    assert_response :success
+    assert_select "input[name='q'][value='salmon']"
+  end
+
+  test "search returns empty state when no match" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { q: "xyzzyplugh_nothing" }
+    assert_response :success
+    assert_select "h2", "No recipes match your filters"
+  end
+
+  test "sort by alphabetical returns correct order" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { sort: "alphabetical" }
+    assert_response :success
+  end
+
+  test "sort by quickest returns correct order" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { sort: "quickest" }
+    assert_response :success
+  end
+
+  test "sort by most_used works" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { sort: "most_used" }
+    assert_response :success
+  end
+
+  test "cook time filter works" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { cook_time: 20 }
+    assert_response :success
+    # Only eggs (15 min total) should match
+    assert_select "h2", recipes(:two).title
+  end
+
+  test "calorie range filter works" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { min_calories: 300, max_calories: 500 }
+    assert_response :success
+  end
+
+  test "combined filters work together" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { q: "cheese", category: "dinner", sort: "alphabetical" }
+    assert_response :success
+  end
+
+  test "index shows recipe count" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes"
+    assert_response :success
+    assert_select "p", /\d+ recipes?/
+  end
+
+  test "index shows sort dropdown" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes"
+    assert_response :success
+    assert_select "select[name='sort']"
+  end
+
+  test "index shows add recipe dropdown" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes"
+    assert_response :success
+    assert_select "a[href=?]", import_url_recipes_path
+    assert_select "a[href=?]", import_photo_recipes_path
+    assert_select "a[href=?]", quick_entry_recipes_path
+  end
 end

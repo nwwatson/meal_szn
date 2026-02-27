@@ -94,7 +94,7 @@ module Authentication
   end
 
   def redirect_authenticated_user
-    redirect_to account_root_path if signed_in?
+    redirect_to default_account_url if signed_in?
   end
 
   def start_new_session_for(identity)
@@ -125,6 +125,11 @@ module Authentication
   end
 
   def return_url
-    session.delete(:return_to) || account_root_path
+    session.delete(:return_to) || default_account_url
+  end
+
+  def default_account_url
+    account = Current.session&.identity&.accounts&.first
+    account ? "#{account.slug}/" : account_root_path
   end
 end

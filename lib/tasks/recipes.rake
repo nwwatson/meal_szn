@@ -78,6 +78,10 @@ namespace :recipes do
           recipe.tips.create!(tip: tip_text)
         end
 
+        if recipe.nutrition_data.present?
+          DietCategorizer.new(recipe).categorize!
+        end
+
         created += 1
       end
     end
