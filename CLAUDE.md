@@ -69,6 +69,12 @@ Pagination uses lazy Turbo Frames: each page renders a `turbo_frame_tag` for the
 
 Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionController::API` (no views). Recipes expose `to_api_response` and `to_meal_planning_response` serialization methods directly on the model.
 
+**Recipe Import API** — async import endpoints on the recipes controller:
+- `POST /:account_id/api/v1/recipes/import_url` — accepts `{ url }`, returns `{ task_id, status }`
+- `POST /:account_id/api/v1/recipes/import_photo` — accepts multipart `photos[]`, returns `{ task_id, status }`
+- `GET /:account_id/api/v1/recipes/import_status/:task_id` — returns progress, result (when completed), or error
+- `POST /:account_id/api/v1/recipes/import_confirm/:task_id` — saves recipe from completed task, accepts optional `recipe` overrides
+
 ### AI Service Layer
 
 `Ai::Client` (`app/services/ai/client.rb`) wraps the Anthropic Claude API via the `anthropic` gem. Configured in `config/initializers/ai.rb` (default model: `claude-sonnet-4-20250514`, meal planning model: `claude-haiku-4-5-20251001`).

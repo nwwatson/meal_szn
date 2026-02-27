@@ -27,3 +27,11 @@ failed_task:
   task_type: recipe_import
   error_message: "API rate limit exceeded"
   progress_percentage: 25
+
+completed_import_task:
+  id: ai_task_completed_import
+  account_id: acct_test_one
+  status: 2
+  task_type: recipe_import
+  result: <%= { title: "Imported Keto Pancakes", description: "Low carb pancakes", servings: 4, prep_time: 10, cook_time: 15, source: "https://example.com/recipe", ingredients: ["2 cups almond flour", "3 eggs", "1/4 cup butter"], instructions: [{ step_number: 1, instruction: "Mix dry ingredients" }, { step_number: 2, instruction: "Add wet ingredients and cook" }], nutrition: { calories: 350, fat: 28, protein: 15, carbs: 8, fiber: 3 } }.to_json.inspect %>
+  progress_percentage: 100
