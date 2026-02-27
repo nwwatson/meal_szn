@@ -8,6 +8,19 @@
 
   <div class="bg-white rounded-lg shadow overflow-hidden">
     <%= recipe_show_banner(@recipe) %>
+
+    <% if @recipe.images.any? %>
+      <div class="p-4 border-b border-warm-200 bg-warm-50">
+        <div class="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+          <% @recipe.images.each do |img| %>
+            <div class="snap-start shrink-0">
+              <%= image_tag img.variant(:card), class: "h-24 w-32 rounded-lg object-cover shadow-sm", loading: "lazy" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <div class="p-6 border-b border-warm-200">
       <div class="flex justify-between items-start">
         <div>

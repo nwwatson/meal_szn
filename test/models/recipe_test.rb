@@ -185,6 +185,97 @@ class RecipeTest < ActiveSupport::TestCase
     assert recipe.image.attached?
   end
 
+  test "can have multiple attached images" do
+    recipe = recipes(:one)
+    assert_respond_to recipe, :images
+
+    # Create attachment directly
+    blob = ActiveStorage::Blob.create_and_upload!(
+      io: StringIO.new("fake"), filename: "test.jpg", content_type: "image/jpeg"
+    )
+    ActiveStorage::Attachment.create!(
+      name: "images", record: recipe, blob: blob
+    )
+    assert_equal 1, recipe.reload.images.count
+
+    blob2 = ActiveStorage::Blob.create_and_upload!(
+      io: StringIO.new("fake2"), filename: "test2.png", content_type: "image/png"
+    )
+    ActiveStorage::Attachment.create!(
+      name: "images", record: recipe, blob: blob2
+    )
+    assert_equal 2, recipe.reload.images.count
+  end
+
+  test "image defines named variants" do
+    recipe = recipes(:one)
+    recipe.image.attach(
+      io: StringIO.new("fake image data"),
+      filename: "test.jpg",
+      content_type: "image/jpeg"
+    )
+    assert recipe.image.variant(:thumbnail)
+    assert recipe.image.variant(:card)
+    assert recipe.image.variant(:full)
+  end
+
+  test "rejects image with invalid content type" do
+    recipe = recipes(:one)
+    recipe.image.attach(
+      io: StringIO.new("not an image"),
+      filename: "test.txt",
+      content_type: "text/plain"
+    )
+    assert_not recipe.valid?
+    assert_includes recipe.errors[:image], "must be a JPEG, PNG, WebP, or GIF file"
+  end
+
+  test "rejects image exceeding 10MB" do
+    recipe = recipes(:one)
+    recipe.image.attach(
+      io: StringIO.new("x" * (11 * 1024 * 1024)),
+      filename: "huge.jpg",
+      content_type: "image/jpeg"
+    )
+    assert_not recipe.valid?
+    assert_includes recipe.errors[:image], "must be less than 10MB"
+  end
+
+  test "accepts valid image types" do
+    recipe = recipes(:one)
+    %w[image/jpeg image/png image/webp image/gif].each do |type|
+      recipe.image.attach(
+        io: StringIO.new("fake"),
+        filename: "test.#{type.split('/').last}",
+        content_type: type
+      )
+      recipe.valid?
+      assert_empty recipe.errors[:image], "Expected #{type} to be accepted"
+    end
+  end
+
+  test "rejects additional images with invalid content type" do
+    recipe = recipes(:one)
+    recipe.images.attach(
+      io: StringIO.new("not an image"),
+      filename: "bad.txt",
+      content_type: "text/plain"
+    )
+    assert_not recipe.valid?
+    assert_includes recipe.errors[:images], "must be a JPEG, PNG, WebP, or GIF file"
+  end
+
+  test "rejects additional images exceeding 10MB" do
+    recipe = recipes(:one)
+    recipe.images.attach(
+      io: StringIO.new("x" * (11 * 1024 * 1024)),
+      filename: "huge.jpg",
+      content_type: "image/jpeg"
+    )
+    assert_not recipe.valid?
+    assert_includes recipe.errors[:images], "must be less than 10MB"
+  end
+
   test "to_meal_planning_response includes tags" do
     recipe = recipes(:one)
     response = recipe.to_meal_planning_response
