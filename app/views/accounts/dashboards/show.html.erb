@@ -1,268 +1,388 @@
 <% content_for(:title, "Dashboard - MealSzn") %>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <%# === WELCOME HEADER === %>
-  <div class="mb-8">
-    <h1 class="text-3xl font-display font-bold text-warm-900">Welcome back, <%= Current.user.name.split.first %></h1>
-    <p class="text-warm-500 mt-1"><%= Date.current.strftime("%A, %B %-d") %></p>
-  </div>
-
-  <%# === STAT WIDGETS === %>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <%# Recipe count %>
-    <div class="bg-white rounded-xl shadow-sm border border-warm-200 p-6">
-      <div class="flex items-center">
-        <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-          <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-          </svg>
-        </div>
-        <div class="ml-4">
-          <p class="text-sm font-medium text-warm-500">Recipes</p>
-          <p class="text-2xl font-display font-bold text-warm-900"><%= Current.account.recipes.count %></p>
-        </div>
-      </div>
+<div class="bg-warm-gradient min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <%# === WELCOME HEADER === %>
+    <div class="mb-8 fade-up">
+      <h1 class="text-3xl font-display font-bold text-warm-900">Welcome back, <%= Current.user.name.split.first %></h1>
+      <p class="text-warm-500 mt-1"><%= Date.current.strftime("%A, %B %-d") %></p>
     </div>
 
-    <%# Active plan status %>
-    <div class="bg-white rounded-xl shadow-sm border border-warm-200 p-6">
-      <div class="flex items-center">
-        <div class="w-12 h-12 bg-accent-100 rounded-lg flex items-center justify-center">
-          <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-        </div>
-        <div class="ml-4">
-          <p class="text-sm font-medium text-warm-500">Meal Plan</p>
-          <% if @current_meal_plan %>
-            <% day_number = (Date.current - @current_meal_plan.start_date).to_i + 1 %>
-            <% total_days = @current_meal_plan.duration_days %>
-            <p class="text-2xl font-display font-bold text-warm-900">Day <%= day_number %> <span class="text-base font-normal text-warm-400">of <%= total_days %></span></p>
-            <div class="mt-2 w-full bg-warm-200 rounded-full h-1.5">
-              <div class="bg-accent-500 h-1.5 rounded-full" style="width: <%= [(day_number.to_f / total_days * 100).round, 100].min %>%"></div>
-            </div>
-          <% else %>
-            <p class="text-lg font-semibold text-warm-400">No active plan</p>
-          <% end %>
+    <%# === STAT WIDGETS === %>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <%# Recipe count %>
+      <div class="card-warm rounded-2xl p-6 fade-up fade-up-delay-1">
+        <div class="flex items-center">
+          <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-warm-500">Recipes</p>
+            <p class="text-2xl font-display font-bold text-warm-900"><%= Current.account.recipes.count %></p>
+          </div>
         </div>
       </div>
-    </div>
 
-    <%# Contextual quick action %>
-    <div class="bg-white rounded-xl shadow-sm border border-warm-200 p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium text-warm-500">Quick Action</p>
-          <% if !@current_meal_plan %>
-            <p class="text-lg font-semibold text-warm-900 mt-1">Create Meal Plan</p>
-          <% elsif @shopping_list %>
-            <p class="text-lg font-semibold text-warm-900 mt-1">Shopping List</p>
-          <% elsif @dietary_profiles_count == 0 %>
-            <p class="text-lg font-semibold text-warm-900 mt-1">Add Family Member</p>
-          <% else %>
-            <p class="text-lg font-semibold text-warm-900 mt-1">New Recipe</p>
-          <% end %>
-        </div>
-        <% if !@current_meal_plan %>
-          <%= link_to new_meal_plan_path, class: "bg-accent-500 text-white p-3 rounded-lg hover:bg-accent-600 transition-colors" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <%# Active plan status %>
+      <div class="card-warm rounded-2xl p-6 fade-up fade-up-delay-2">
+        <div class="flex items-center">
+          <div class="w-12 h-12 bg-accent-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-warm-500">Meal Plan</p>
+            <% if @current_meal_plan %>
+              <% day_number = (Date.current - @current_meal_plan.start_date).to_i + 1 %>
+              <% total_days = @current_meal_plan.duration_days %>
+              <p class="text-2xl font-display font-bold text-warm-900">Day <%= day_number %> <span class="text-base font-normal text-warm-400">of <%= total_days %></span></p>
+              <div class="mt-2 w-full bg-warm-200 rounded-full h-1.5">
+                <div class="bg-accent-500 h-1.5 rounded-full transition-all" style="width: <%= [(day_number.to_f / total_days * 100).round, 100].min %>%"></div>
+              </div>
+            <% else %>
+              <p class="text-lg font-semibold text-warm-400">No active plan</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <%# Contextual quick action %>
+      <div class="card-warm rounded-2xl p-6 fade-up fade-up-delay-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-warm-500">Quick Action</p>
+            <% if !@current_meal_plan %>
+              <p class="text-lg font-semibold text-warm-900 mt-1">Create Meal Plan</p>
+            <% elsif @shopping_list %>
+              <p class="text-lg font-semibold text-warm-900 mt-1">Shopping List</p>
+            <% elsif @dietary_profiles_count == 0 %>
+              <p class="text-lg font-semibold text-warm-900 mt-1">Add Family Member</p>
+            <% else %>
+              <p class="text-lg font-semibold text-warm-900 mt-1">New Recipe</p>
+            <% end %>
+          </div>
+          <% if !@current_meal_plan %>
+            <%= link_to new_meal_plan_path, class: "bg-accent-500 text-white p-3 rounded-lg hover:bg-accent-600 transition-colors" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            <% end %>
+          <% elsif @shopping_list %>
+            <%= link_to meal_plan_shopping_list_path(@current_meal_plan), class: "bg-accent-500 text-white p-3 rounded-lg hover:bg-accent-600 transition-colors" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+            <% end %>
+          <% elsif @dietary_profiles_count == 0 %>
+            <%= link_to new_dietary_profile_path, class: "bg-accent-500 text-white p-3 rounded-lg hover:bg-accent-600 transition-colors" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+              </svg>
+            <% end %>
+          <% else %>
+            <%= link_to new_recipe_path, class: "bg-primary-600 text-white p-3 rounded-lg hover:bg-primary-700 transition-colors" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+            <% end %>
           <% end %>
-        <% elsif @shopping_list %>
-          <%= link_to meal_plan_shopping_list_path(@current_meal_plan), class: "bg-accent-500 text-white p-3 rounded-lg hover:bg-accent-600 transition-colors" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-            </svg>
-          <% end %>
-        <% elsif @dietary_profiles_count == 0 %>
-          <%= link_to new_dietary_profile_path, class: "bg-accent-500 text-white p-3 rounded-lg hover:bg-accent-600 transition-colors" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-            </svg>
+        </div>
+      </div>
+    </div>
+
+    <%# === TODAY'S MEALS (HERO) === %>
+    <% if @current_meal_plan %>
+      <div class="mb-8 fade-up">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-display font-bold text-warm-900">Today's Meals</h2>
+          <%= link_to "View Full Plan", meal_plan_path(@current_meal_plan), class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
+        </div>
+
+        <% if @today && @today.meals.any? %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-<%= [@today.meals.size, 4].min %> gap-4">
+            <% @today.meals.sort_by(&:meal_type_before_type_cast).each do |meal| %>
+              <%= link_to recipe_path(meal.recipe), class: "block card-warm rounded-2xl p-5 hover:shadow-md transition-all" do %>
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide
+                    <% case meal.meal_type %>
+                    <% when 'breakfast' %>
+                      bg-accent-100 text-accent-800
+                    <% when 'lunch' %>
+                      bg-primary-100 text-primary-800
+                    <% when 'dinner' %>
+                      bg-primary-200 text-primary-900
+                    <% when 'snack' %>
+                      bg-warm-100 text-warm-700
+                    <% end %>
+                  "><%= meal.meal_type %></span>
+                </div>
+                <h3 class="font-semibold text-warm-900 mb-2 line-clamp-2"><%= meal.recipe.title %></h3>
+                <div class="flex items-center gap-3 text-sm text-warm-500">
+                  <% if meal.recipe.total_time > 0 %>
+                    <span class="flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <%= meal.recipe.total_time %> min
+                    </span>
+                  <% end %>
+                  <% if meal.recipe.nutrition_data %>
+                    <span class="font-medium text-warm-700"><%= meal.calories %> cal</span>
+                  <% end %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+
+          <%# === DAILY MACRO PROGRESS === %>
+          <% if @today.meals.any? { |m| m.recipe.nutrition_data } %>
+            <div class="mt-4 card-warm rounded-2xl p-5" data-testid="macro-progress">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-sm font-display font-bold text-warm-800">Daily Nutrition</span>
+                <% if @macro_targets %>
+                  <span class="text-xs text-warm-400">vs. your targets</span>
+                <% end %>
+              </div>
+
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <%# Calories %>
+                <div>
+                  <div class="flex items-baseline justify-between mb-1">
+                    <span class="text-xs font-semibold text-warm-500 uppercase tracking-wider">Calories</span>
+                    <span class="text-xs text-warm-400 tabular-nums">
+                      <%= @today.total_calories %>
+                      <% if @daily_calories_target %>/ <%= @daily_calories_target.round %><% end %>
+                    </span>
+                  </div>
+                  <div class="w-full bg-warm-200 rounded-full h-2.5">
+                    <% cal_pct = @daily_calories_target ? [(@today.total_calories.to_f / @daily_calories_target * 100).round, 100].min : 0 %>
+                    <div class="h-2.5 rounded-full transition-all <%= cal_pct > 100 ? 'bg-red-400' : cal_pct > 85 ? 'bg-accent-500' : 'bg-green-500' %>"
+                         style="width: <%= @daily_calories_target ? cal_pct : 0 %>%"></div>
+                  </div>
+                  <% unless @daily_calories_target %>
+                    <p class="text-xs text-warm-400 mt-1"><%= @today.total_calories %> cal</p>
+                  <% end %>
+                </div>
+
+                <%# Fat %>
+                <div>
+                  <div class="flex items-baseline justify-between mb-1">
+                    <span class="text-xs font-semibold text-warm-500 uppercase tracking-wider">Fat</span>
+                    <span class="text-xs text-warm-400 tabular-nums">
+                      <%= @today.total_fat %>g
+                      <% if @macro_targets&.dig(:fat_g) %>/ <%= @macro_targets[:fat_g].round %>g<% end %>
+                    </span>
+                  </div>
+                  <div class="w-full bg-warm-200 rounded-full h-2.5">
+                    <% fat_target = @macro_targets&.dig(:fat_g) %>
+                    <% fat_pct = fat_target ? [(@today.total_fat.to_f / fat_target * 100).round, 100].min : 0 %>
+                    <div class="h-2.5 rounded-full transition-all <%= fat_pct > 100 ? 'bg-red-400' : fat_pct > 85 ? 'bg-accent-500' : 'bg-green-500' %>"
+                         style="width: <%= fat_target ? fat_pct : 0 %>%"></div>
+                  </div>
+                  <% unless fat_target %>
+                    <p class="text-xs text-warm-400 mt-1"><%= @today.total_fat %>g</p>
+                  <% end %>
+                </div>
+
+                <%# Protein %>
+                <div>
+                  <div class="flex items-baseline justify-between mb-1">
+                    <span class="text-xs font-semibold text-warm-500 uppercase tracking-wider">Protein</span>
+                    <span class="text-xs text-warm-400 tabular-nums">
+                      <%= @today.total_protein %>g
+                      <% if @macro_targets&.dig(:protein_g) %>/ <%= @macro_targets[:protein_g].round %>g<% end %>
+                    </span>
+                  </div>
+                  <div class="w-full bg-warm-200 rounded-full h-2.5">
+                    <% protein_target = @macro_targets&.dig(:protein_g) %>
+                    <% protein_pct = protein_target ? [(@today.total_protein.to_f / protein_target * 100).round, 100].min : 0 %>
+                    <div class="h-2.5 rounded-full transition-all <%= protein_pct > 100 ? 'bg-red-400' : protein_pct > 85 ? 'bg-accent-500' : 'bg-green-500' %>"
+                         style="width: <%= protein_target ? protein_pct : 0 %>%"></div>
+                  </div>
+                  <% unless protein_target %>
+                    <p class="text-xs text-warm-400 mt-1"><%= @today.total_protein %>g</p>
+                  <% end %>
+                </div>
+
+                <%# Net Carbs %>
+                <div>
+                  <div class="flex items-baseline justify-between mb-1">
+                    <span class="text-xs font-semibold text-warm-500 uppercase tracking-wider">Net Carbs</span>
+                    <span class="text-xs text-warm-400 tabular-nums">
+                      <%= @today.total_net_carbs %>g
+                      <% if @macro_targets&.dig(:carbs_g) %>/ <%= @macro_targets[:carbs_g].round %>g<% end %>
+                    </span>
+                  </div>
+                  <div class="w-full bg-warm-200 rounded-full h-2.5">
+                    <% carbs_target = @macro_targets&.dig(:carbs_g) %>
+                    <% carbs_pct = carbs_target ? [(@today.total_net_carbs.to_f / carbs_target * 100).round, 100].min : 0 %>
+                    <div class="h-2.5 rounded-full transition-all <%= carbs_pct > 100 ? 'bg-red-400' : carbs_pct > 85 ? 'bg-accent-500' : 'bg-green-500' %>"
+                         style="width: <%= carbs_target ? carbs_pct : 0 %>%"></div>
+                  </div>
+                  <% unless carbs_target %>
+                    <p class="text-xs text-warm-400 mt-1"><%= @today.total_net_carbs %>g</p>
+                  <% end %>
+                </div>
+              </div>
+            </div>
           <% end %>
         <% else %>
-          <%= link_to new_recipe_path, class: "bg-primary-600 text-white p-3 rounded-lg hover:bg-primary-700 transition-colors" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          <div class="card-warm rounded-2xl p-8 text-center">
+            <svg class="mx-auto h-10 w-10 text-warm-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-          <% end %>
-        <% end %>
-      </div>
-    </div>
-  </div>
-
-  <%# === TODAY'S MEALS (HERO) === %>
-  <% if @current_meal_plan %>
-    <div class="mb-8">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-display font-bold text-warm-900">Today's Meals</h2>
-        <%= link_to "View Full Plan", meal_plan_path(@current_meal_plan), class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
-      </div>
-
-      <% if @today && @today.meals.any? %>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-<%= [@today.meals.size, 4].min %> gap-4">
-          <% @today.meals.sort_by(&:meal_type_before_type_cast).each do |meal| %>
-            <%= link_to recipe_path(meal.recipe), class: "block bg-white rounded-xl shadow-sm border border-warm-200 p-5 hover:shadow-md hover:border-primary-300 transition-all" do %>
-              <div class="flex items-center gap-2 mb-3">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide
-                  <% case meal.meal_type %>
-                  <% when 'breakfast' %>
-                    bg-accent-100 text-accent-800
-                  <% when 'lunch' %>
-                    bg-primary-100 text-primary-800
-                  <% when 'dinner' %>
-                    bg-primary-200 text-primary-900
-                  <% when 'snack' %>
-                    bg-warm-100 text-warm-700
-                  <% end %>
-                "><%= meal.meal_type %></span>
-              </div>
-              <h3 class="font-semibold text-warm-900 mb-2 line-clamp-2"><%= meal.recipe.title %></h3>
-              <div class="flex items-center gap-3 text-sm text-warm-500">
-                <% if meal.recipe.total_time > 0 %>
-                  <span class="flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <%= meal.recipe.total_time %> min
-                  </span>
-                <% end %>
-                <% if meal.recipe.nutrition_data %>
-                  <span class="font-medium text-warm-700"><%= meal.calories %> cal</span>
-                <% end %>
-              </div>
-            <% end %>
-          <% end %>
-        </div>
-
-        <%# Daily totals %>
-        <% if @today.meals.any? { |m| m.recipe.nutrition_data } %>
-          <div class="mt-4 bg-white/60 rounded-lg border border-warm-200 px-5 py-3 flex items-center justify-between">
-            <span class="text-sm font-medium text-warm-500">Today's Total</span>
-            <div class="flex items-center gap-4 text-sm">
-              <span class="font-semibold text-warm-800"><%= @today.total_calories %> cal</span>
-              <span class="text-warm-500"><%= @today.total_fat %>g fat</span>
-              <span class="text-warm-500"><%= @today.total_protein %>g protein</span>
-              <span class="text-warm-500"><%= @today.total_net_carbs %>g net carbs</span>
-            </div>
+            <p class="mt-3 text-warm-500">No meals planned for today.</p>
+            <%= link_to "Add meals to today", meal_plan_path(@current_meal_plan), class: "mt-2 inline-block text-sm text-primary-600 hover:text-primary-700 font-medium" %>
           </div>
         <% end %>
-      <% else %>
-        <div class="bg-white rounded-xl shadow-sm border border-warm-200 p-8 text-center">
-          <svg class="mx-auto h-10 w-10 text-warm-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <p class="mt-3 text-warm-500">No meals planned for today.</p>
-          <%= link_to "Add meals to today", meal_plan_path(@current_meal_plan), class: "mt-2 inline-block text-sm text-primary-600 hover:text-primary-700 font-medium" %>
-        </div>
-      <% end %>
-    </div>
-
-    <%# === WEEKLY OVERVIEW STRIP === %>
-    <div class="mb-8">
-      <h2 class="text-lg font-display font-bold text-warm-900 mb-3">This Week</h2>
-      <div class="grid grid-cols-7 gap-2">
-        <% @current_meal_plan.days.sort_by(&:date).each do |day| %>
-          <% is_today = day.date == Date.current %>
-          <% has_meals = day.meals.any? %>
-          <%= link_to meal_plan_path(@current_meal_plan, anchor: "day-#{day.day_number}"),
-                class: "block rounded-lg p-3 text-center transition-all #{
-                  if is_today
-                    'bg-primary-600 text-white shadow-md ring-2 ring-primary-300'
-                  elsif has_meals
-                    'bg-white border border-warm-200 hover:border-primary-300 hover:shadow-sm'
-                  else
-                    'bg-warm-50 border border-dashed border-warm-300 opacity-70 hover:opacity-100'
-                  end
-                }" do %>
-            <p class="text-xs font-semibold uppercase tracking-wide <%= is_today ? 'text-primary-100' : 'text-warm-400' %>">
-              <%= day.date.strftime("%a") %>
-            </p>
-            <p class="text-sm font-bold mt-0.5 <%= is_today ? 'text-white' : 'text-warm-800' %>">
-              <%= day.date.strftime("%-d") %>
-            </p>
-            <% if has_meals %>
-              <p class="text-xs mt-1 <%= is_today ? 'text-primary-200' : 'text-warm-500' %>">
-                <%= day.meals.size %> meal<%= day.meals.size == 1 ? '' : 's' %>
-              </p>
-              <% if day.meals.any? { |m| m.recipe.nutrition_data } %>
-                <p class="text-xs <%= is_today ? 'text-primary-200' : 'text-warm-400' %>">
-                  <%= day.total_calories %> cal
-                </p>
-              <% end %>
-            <% else %>
-              <p class="text-xs mt-1 <%= is_today ? 'text-primary-200' : 'text-warm-400' %>">Empty</p>
-            <% end %>
-          <% end %>
-        <% end %>
       </div>
-    </div>
-  <% else %>
-    <%# === NO MEAL PLAN EMPTY STATE === %>
-    <div class="mb-8 bg-white rounded-xl shadow-sm border border-warm-200 p-10 text-center">
-      <div class="w-16 h-16 mx-auto bg-accent-100 rounded-2xl flex items-center justify-center mb-4">
-        <svg class="w-8 h-8 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-      </div>
-      <h3 class="text-lg font-display font-bold text-warm-900">No active meal plan</h3>
-      <p class="mt-2 text-warm-500 max-w-sm mx-auto">
-        Create a meal plan to organize your weekly meals, track nutrition, and generate shopping lists.
-      </p>
-      <% if @dietary_profiles_count == 0 %>
-        <p class="mt-2 text-sm text-warm-400">Tip: Set up dietary profiles for your family first for personalized nutrition tracking.</p>
-        <div class="mt-5 flex items-center justify-center gap-3">
-          <%= link_to "Set Up Profiles", new_dietary_profile_path, class: "bg-warm-100 text-warm-700 px-4 py-2 rounded-lg hover:bg-warm-200 transition-colors text-sm font-medium" %>
-          <%= link_to "Create Meal Plan", new_meal_plan_path, class: "bg-primary-600 text-white px-5 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium" %>
-        </div>
-      <% else %>
-        <div class="mt-5">
-          <%= link_to "Create Meal Plan", new_meal_plan_path, class: "bg-primary-600 text-white px-5 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium" %>
-        </div>
-      <% end %>
-    </div>
-  <% end %>
 
-  <%# === RECENT RECIPES === %>
-  <div>
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-display font-bold text-warm-900">Recent Recipes</h2>
-      <%= link_to "View All", recipes_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
-    </div>
-
-    <% if @recent_recipes&.any? %>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <% @recent_recipes.each do |recipe| %>
-          <%= link_to recipe_path(recipe), class: "block bg-white rounded-xl shadow-sm border border-warm-200 p-5 hover:shadow-md hover:border-primary-300 transition-all" do %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warm-100 text-warm-700 mb-2">
-              <%= recipe.category.titleize %>
-            </span>
-            <h3 class="font-semibold text-warm-900 line-clamp-2 mb-2"><%= recipe.title %></h3>
-            <div class="flex items-center gap-3 text-sm text-warm-500">
-              <% if recipe.total_time > 0 %>
-                <span><%= recipe.total_time %> min</span>
-              <% end %>
-              <% if recipe.nutrition_data %>
-                <span class="font-medium text-warm-700"><%= recipe.nutrition_data.calories %> cal</span>
-              <% end %>
+      <%# === SHOPPING LIST STATUS === %>
+      <% if @shopping_list %>
+        <div class="mb-8 fade-up" data-testid="shopping-list-status">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-display font-bold text-warm-900">Shopping List</h2>
+            <%= link_to "View List", meal_plan_shopping_list_path(@current_meal_plan), class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
+          </div>
+          <% checked = @shopping_list.checked_count %>
+          <% total = @shopping_list.total_count %>
+          <% pct = total > 0 ? (checked.to_f / total * 100).round : 0 %>
+          <%= link_to meal_plan_shopping_list_path(@current_meal_plan), class: "block card-warm rounded-2xl p-5 hover:shadow-md transition-all" do %>
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center <%= pct == 100 ? 'bg-green-100' : 'bg-accent-100' %>">
+                  <% if pct == 100 %>
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                  <% else %>
+                    <svg class="w-5 h-5 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/>
+                    </svg>
+                  <% end %>
+                </div>
+                <div>
+                  <p class="font-semibold text-warm-900"><%= checked %> of <%= total %> items</p>
+                  <p class="text-xs text-warm-500"><%= pct == 100 ? "All done!" : "#{total - checked} remaining" %></p>
+                </div>
+              </div>
+              <span class="text-sm font-display font-bold tabular-nums <%= pct == 100 ? 'text-green-600' : 'text-warm-600' %>"><%= pct %>%</span>
+            </div>
+            <div class="w-full bg-warm-200 rounded-full h-2">
+              <div class="h-2 rounded-full transition-all <%= pct == 100 ? 'bg-green-500' : 'bg-accent-500' %>" style="width: <%= pct %>%"></div>
             </div>
           <% end %>
-        <% end %>
+        </div>
+      <% end %>
+
+      <%# === WEEKLY OVERVIEW STRIP === %>
+      <div class="mb-8 fade-up">
+        <h2 class="text-lg font-display font-bold text-warm-900 mb-3">This Week</h2>
+        <div class="grid grid-cols-7 gap-2">
+          <% @current_meal_plan.days.sort_by(&:date).each do |day| %>
+            <% is_today = day.date == Date.current %>
+            <% has_meals = day.meals.any? %>
+            <%= link_to meal_plan_path(@current_meal_plan, anchor: "day-#{day.day_number}"),
+                  class: "block rounded-xl p-3 text-center transition-all #{
+                    if is_today
+                      'bg-primary-600 text-white shadow-md ring-2 ring-primary-300'
+                    elsif has_meals
+                      'card-warm hover:shadow-md'
+                    else
+                      'bg-warm-50/50 border border-dashed border-warm-300 opacity-70 hover:opacity-100'
+                    end
+                  }" do %>
+              <p class="text-xs font-semibold uppercase tracking-wide <%= is_today ? 'text-primary-100' : 'text-warm-400' %>">
+                <%= day.date.strftime("%a") %>
+              </p>
+              <p class="text-sm font-bold mt-0.5 <%= is_today ? 'text-white' : 'text-warm-800' %>">
+                <%= day.date.strftime("%-d") %>
+              </p>
+              <% if has_meals %>
+                <p class="text-xs mt-1 <%= is_today ? 'text-primary-200' : 'text-warm-500' %>">
+                  <%= day.meals.size %> meal<%= day.meals.size == 1 ? '' : 's' %>
+                </p>
+                <% if day.meals.any? { |m| m.recipe.nutrition_data } %>
+                  <p class="text-xs <%= is_today ? 'text-primary-200' : 'text-warm-400' %>">
+                    <%= day.total_calories %> cal
+                  </p>
+                <% end %>
+              <% else %>
+                <p class="text-xs mt-1 <%= is_today ? 'text-primary-200' : 'text-warm-400' %>">Empty</p>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
       </div>
     <% else %>
-      <div class="bg-white rounded-xl shadow-sm border border-warm-200 p-10 text-center">
-        <div class="w-14 h-14 mx-auto bg-primary-100 rounded-2xl flex items-center justify-center mb-4">
-          <svg class="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      <%# === NO MEAL PLAN EMPTY STATE === %>
+      <div class="mb-8 card-warm rounded-2xl p-10 text-center fade-up">
+        <div class="w-16 h-16 mx-auto bg-accent-100 rounded-2xl flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
         </div>
-        <h3 class="text-lg font-display font-bold text-warm-900">No recipes yet</h3>
-        <p class="mt-2 text-warm-500 max-w-sm mx-auto">Get started by adding your first recipe. You can enter it manually or import from a URL.</p>
-        <div class="mt-5">
-          <%= link_to "Add Your First Recipe", new_recipe_path, class: "bg-primary-600 text-white px-5 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium" %>
-        </div>
+        <h3 class="text-lg font-display font-bold text-warm-900">No active meal plan</h3>
+        <p class="mt-2 text-warm-500 max-w-sm mx-auto">
+          Create a meal plan to organize your weekly meals, track nutrition, and generate shopping lists.
+        </p>
+        <% if @dietary_profiles_count == 0 %>
+          <p class="mt-2 text-sm text-warm-400">Tip: Set up dietary profiles for your family first for personalized nutrition tracking.</p>
+          <div class="mt-5 flex items-center justify-center gap-3">
+            <%= link_to "Set Up Profiles", new_dietary_profile_path, class: "bg-warm-100 text-warm-700 px-4 py-2 rounded-lg hover:bg-warm-200 transition-colors text-sm font-medium" %>
+            <%= link_to "Create Meal Plan", new_meal_plan_path, class: "bg-primary-600 text-white px-5 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium" %>
+          </div>
+        <% else %>
+          <div class="mt-5">
+            <%= link_to "Create Meal Plan", new_meal_plan_path, class: "bg-primary-600 text-white px-5 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium" %>
+          </div>
+        <% end %>
       </div>
     <% end %>
+
+    <%# === RECENT RECIPES === %>
+    <div class="fade-up">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-display font-bold text-warm-900">Recent Recipes</h2>
+        <%= link_to "View All", recipes_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
+      </div>
+
+      <% if @recent_recipes&.any? %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <% @recent_recipes.each do |recipe| %>
+            <%= link_to recipe_path(recipe), class: "block card-warm rounded-2xl p-5 hover:shadow-md transition-all" do %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warm-100 text-warm-700 mb-2">
+                <%= recipe.category.titleize %>
+              </span>
+              <h3 class="font-semibold text-warm-900 line-clamp-2 mb-2"><%= recipe.title %></h3>
+              <div class="flex items-center gap-3 text-sm text-warm-500">
+                <% if recipe.total_time > 0 %>
+                  <span><%= recipe.total_time %> min</span>
+                <% end %>
+                <% if recipe.nutrition_data %>
+                  <span class="font-medium text-warm-700"><%= recipe.nutrition_data.calories %> cal</span>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="card-warm rounded-2xl p-10 text-center">
+          <div class="w-14 h-14 mx-auto bg-primary-100 rounded-2xl flex items-center justify-center mb-4">
+            <svg class="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-display font-bold text-warm-900">No recipes yet</h3>
+          <p class="mt-2 text-warm-500 max-w-sm mx-auto">Get started by adding your first recipe. You can enter it manually or import from a URL.</p>
+          <div class="mt-5">
+            <%= link_to "Add Your First Recipe", new_recipe_path, class: "bg-primary-600 text-white px-5 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
