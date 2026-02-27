@@ -245,7 +245,7 @@
 
         <%# Load More via lazy Turbo Frame %>
         <% if @pagy.next %>
-          <%= turbo_frame_tag "recipes_page_#{@pagy.next}", loading: :lazy, src: recipes_path(page: @pagy.next, **filter_params), class: "col-span-full contents" do %>
+          <%= turbo_frame_tag "recipes_page_#{@pagy.next}", loading: :lazy, src: recipes_path(page: @pagy.next, **filter_params), class: "col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" do %>
             <div class="flex justify-center py-8 col-span-full">
               <div class="inline-flex items-center gap-2 text-warm-400 text-sm">
                 <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
