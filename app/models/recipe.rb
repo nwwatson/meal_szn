@@ -9,6 +9,7 @@ class Recipe < ApplicationRecord
   has_many :tips, class_name: "RecipeTip", dependent: :destroy
   has_many :recipe_tags, dependent: :destroy
   has_many :tags, through: :recipe_tags
+  has_many :meal_plan_meals
 
   validates :title, presence: true
   validates :category, presence: true
@@ -31,6 +32,37 @@ class Recipe < ApplicationRecord
   scope :by_tags, ->(tag_ids) { joins(:recipe_tags).where(recipe_tags: { tag_id: tag_ids }).distinct if tag_ids.present? }
   scope :by_diet, ->(diet_slug) {
     joins(:tags).where(tags: { name: "#{DietCategorizer::TAG_PREFIX}#{diet_slug}" }).distinct if diet_slug.present?
+  }
+  scope :by_search, ->(query) {
+    if query.present?
+      sanitized = "%#{sanitize_sql_like(query)}%"
+      left_joins(:ingredients)
+        .where("recipes.title LIKE :q OR recipes.description LIKE :q OR ingredients.name LIKE :q", q: sanitized)
+        .group("recipes.id")
+    end
+  }
+  scope :by_cook_time, ->(max_minutes) {
+    where("COALESCE(prep_time, 0) + COALESCE(cook_time, 0) <= ?", max_minutes.to_i) if max_minutes.present?
+  }
+  scope :by_calorie_range, ->(min_cal, max_cal) {
+    if min_cal.present? || max_cal.present?
+      scope = joins(:nutrition_data)
+      scope = scope.where("recipe_nutrition_data.calories >= ?", min_cal.to_i) if min_cal.present?
+      scope = scope.where("recipe_nutrition_data.calories <= ?", max_cal.to_i) if max_cal.present?
+      scope
+    end
+  }
+  scope :sorted_by, ->(sort) {
+    case sort.to_s
+    when "alphabetical"
+      order(title: :asc)
+    when "quickest"
+      order(Arel.sql("COALESCE(prep_time, 0) + COALESCE(cook_time, 0) ASC"))
+    when "most_used"
+      left_joins(:meal_plan_meals).group("recipes.id").order(Arel.sql("COUNT(DISTINCT meal_plan_meals.id) DESC"))
+    else
+      order(created_at: :desc)
+    end
   }
 
   def categorize_diets!

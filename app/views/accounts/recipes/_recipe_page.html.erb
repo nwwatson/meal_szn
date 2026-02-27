@@ -1,0 +1,19 @@
+<%= turbo_frame_tag "recipes_page_#{pagy.page}", class: "col-span-full contents" do %>
+  <% recipes.each_with_index do |recipe, index| %>
+    <%= render "recipe_card", recipe: recipe, index: index %>
+  <% end %>
+
+  <% if pagy.next %>
+    <%= turbo_frame_tag "recipes_page_#{pagy.next}", loading: :lazy, src: recipes_path(page: pagy.next, **filter_params), class: "col-span-full contents" do %>
+      <div class="flex justify-center py-8 col-span-full">
+        <div class="inline-flex items-center gap-2 text-warm-400 text-sm">
+          <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          Loading more recipes...
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

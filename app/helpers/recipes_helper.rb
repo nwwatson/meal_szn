@@ -45,6 +45,57 @@ module RecipesHelper
     end
   end
 
+  def sort_options
+    [
+      [ "Newest", "newest" ],
+      [ "A–Z", "alphabetical" ],
+      [ "Quickest", "quickest" ],
+      [ "Most Used", "most_used" ]
+    ]
+  end
+
+  def cook_time_options
+    [
+      [ "Any", nil ],
+      [ "≤ 15 min", 15 ],
+      [ "≤ 30 min", 30 ],
+      [ "≤ 60 min", 60 ]
+    ]
+  end
+
+  def active_filter_count
+    count = 0
+    count += 1 if params[:q].present?
+    count += 1 if params[:category].present?
+    count += 1 if params[:diet].present?
+    count += 1 if params[:cook_time].present?
+    count += 1 if params[:min_calories].present? || params[:max_calories].present?
+    count += Array(params[:tags]).size
+    count += 1 if params[:sort].present? && params[:sort] != "newest"
+    count
+  end
+
+  def filter_params
+    p = {}
+    p[:q] = params[:q] if params[:q].present?
+    p[:category] = params[:category] if params[:category].present?
+    p[:diet] = params[:diet] if params[:diet].present?
+    p[:sort] = params[:sort] if params[:sort].present?
+    p[:cook_time] = params[:cook_time] if params[:cook_time].present?
+    p[:min_calories] = params[:min_calories] if params[:min_calories].present?
+    p[:max_calories] = params[:max_calories] if params[:max_calories].present?
+    p[:tags] = params[:tags] if params[:tags].present?
+    p
+  end
+
+  def filter_params_with(overrides)
+    filter_params.merge(overrides)
+  end
+
+  def filter_params_except(*keys)
+    filter_params.except(*keys)
+  end
+
   private
 
   def category_pattern(category)
