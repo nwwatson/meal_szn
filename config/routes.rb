@@ -109,7 +109,17 @@ Rails.application.routes.draw do
           resources :recipes, only: %i[index show]
         end
 
-        resources :meal_plans, only: %i[index show create update destroy]
+        resources :meal_plans, only: %i[index show create update destroy] do
+          resource :shopping_list, only: %i[show create], controller: "shopping_lists" do
+            resources :items, only: [], controller: "shopping_list_items" do
+              member do
+                patch :toggle
+              end
+            end
+          end
+        end
+
+        resources :dietary_profiles, only: %i[index show create update destroy]
       end
     end
   end

@@ -75,6 +75,15 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 - `GET /:account_id/api/v1/recipes/import_status/:task_id` — returns progress, result (when completed), or error
 - `POST /:account_id/api/v1/recipes/import_confirm/:task_id` — saves recipe from completed task, accepts optional `recipe` overrides
 
+**Dietary Profiles API** — CRUD endpoints with `DietRegistry.diet_names` in index meta:
+- `GET/POST /:account_id/api/v1/dietary_profiles` — list active profiles / create
+- `GET/PATCH/DELETE /:account_id/api/v1/dietary_profiles/:id` — show / update / soft-delete
+
+**Shopping Lists API** — nested under meal plans:
+- `GET /:account_id/api/v1/meal_plans/:meal_plan_id/shopping_list` — get latest list with items
+- `POST /:account_id/api/v1/meal_plans/:meal_plan_id/shopping_list` — generate via `ShoppingListGenerator`
+- `PATCH /:account_id/api/v1/meal_plans/:meal_plan_id/shopping_list/items/:id/toggle` — toggle item checked
+
 ### AI Service Layer
 
 `Ai::Client` (`app/services/ai/client.rb`) wraps the Anthropic Claude API via the `anthropic` gem. Configured in `config/initializers/ai.rb` (default model: `claude-sonnet-4-20250514`, meal planning model: `claude-haiku-4-5-20251001`).
