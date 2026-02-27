@@ -110,6 +110,14 @@ Rails.application.routes.draw do
         end
 
         resources :meal_plans, only: %i[index show create update destroy] do
+          collection do
+            post :generate
+            get "generate_status/:task_id", action: :generate_status, as: :generate_status
+          end
+          member do
+            post :swap_meal
+            post :regenerate_day
+          end
           resource :shopping_list, only: %i[show create], controller: "shopping_lists" do
             resources :items, only: [], controller: "shopping_list_items" do
               member do

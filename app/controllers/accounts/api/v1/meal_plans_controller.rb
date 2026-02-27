@@ -1,7 +1,8 @@
 class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationController
-  before_action :require_write_permission!, only: %i[create update destroy]
-  before_action :set_meal_plan, only: %i[show update destroy]
-  before_action :set_user_for_create, only: :create
+  before_action :require_write_permission!, only: %i[create update destroy generate swap_meal regenerate_day]
+  before_action :set_meal_plan, only: %i[show update destroy swap_meal regenerate_day]
+  before_action :set_user_for_create, only: %i[create generate]
+  before_action :set_task, only: :generate_status
 
   # GET /api/v1/meal_plans
   def index
@@ -57,6 +58,103 @@ class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationCon
     head :no_content
   end
 
+  # POST /api/v1/meal_plans/generate
+  def generate
+    plan = current_account.meal_plans.build(meal_plan_params)
+    plan.user = @user
+
+    unless plan.save
+      render json: { errors: plan.errors.full_messages }, status: :unprocessable_entity
+      return
+    end
+
+    generate_days(plan)
+    attach_participants(plan, params[:dietary_profile_ids])
+
+    task = current_account.ai_task_statuses.create!(task_type: "meal_plan_generation")
+
+    MealPlanGenerationJob.perform_later(
+      task.id,
+      meal_plan_id: plan.id,
+      preferences: Array(params[:preferences]).reject(&:blank?),
+      special_requests: params[:special_requests].presence
+    )
+
+    render json: {
+      task_id: task.id,
+      meal_plan_id: plan.id,
+      status: task.status
+    }, status: :created
+  end
+
+  # GET /api/v1/meal_plans/generate_status/:task_id
+  def generate_status
+    response = {
+      task_id: @task.id,
+      status: @task.status,
+      progress_percentage: @task.progress_percentage
+    }
+
+    if @task.completed?
+      raw = @task.result
+      response[:result] = raw.is_a?(String) ? JSON.parse(raw) : raw
+    end
+    response[:error_message] = @task.error_message if @task.failed?
+
+    render json: response
+  end
+
+  # POST /api/v1/meal_plans/:id/swap_meal
+  def swap_meal
+    meal_id = params[:meal_id]
+    recipe_id = params[:recipe_id]
+
+    if meal_id.blank? || recipe_id.blank?
+      render json: { error: "meal_id and recipe_id are required" }, status: :bad_request
+      return
+    end
+
+    meal = @meal_plan.days.joins(:meals).where(meal_plan_meals: { id: meal_id }).first&.meals&.find_by(id: meal_id)
+    unless meal
+      render json: { error: "Meal not found in this plan" }, status: :not_found
+      return
+    end
+
+    recipe = current_account.recipes.find_by(id: recipe_id)
+    unless recipe
+      render json: { error: "Recipe not found" }, status: :not_found
+      return
+    end
+
+    meal.update!(recipe: recipe)
+
+    render json: { meal_plan: @meal_plan.reload.to_api_response }
+  end
+
+  # POST /api/v1/meal_plans/:id/regenerate_day
+  def regenerate_day
+    day_number = params[:day_number].to_i
+
+    day = @meal_plan.days.find_by(day_number: day_number)
+    unless day
+      render json: { error: "Day #{day_number} not found in this plan" }, status: :not_found
+      return
+    end
+
+    day.meals.destroy_all
+
+    generator = MealPlanGenerator.new(
+      @meal_plan.reload,
+      preferences: Array(params[:preferences]).reject(&:blank?),
+      special_requests: params[:special_requests].presence
+    )
+    generator.generate
+
+    render json: { meal_plan: @meal_plan.reload.to_api_response }
+  rescue MealPlanGenerator::GenerationError => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  end
+
   private
 
   def set_meal_plan
@@ -68,11 +166,33 @@ class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationCon
   end
 
   def set_user_for_create
-    # Find the user associated with this identity in this account
     @user = current_account.users.find_by(identity: current_identity)
 
     unless @user
       render json: { error: "User not found in this account" }, status: :forbidden
+    end
+  end
+
+  def set_task
+    @task = current_account.ai_task_statuses.find(params[:task_id])
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Task not found" }, status: :not_found
+  end
+
+  def generate_days(plan)
+    (plan.start_date..plan.end_date).each_with_index do |date, index|
+      plan.days.create!(date: date, day_number: index + 1)
+    end
+  end
+
+  def attach_participants(plan, profile_ids)
+    return unless profile_ids.present?
+
+    Array(profile_ids).reject(&:blank?).each do |profile_id|
+      profile = current_account.dietary_profiles.active.find_by(id: profile_id)
+      next unless profile
+
+      plan.participants.create!(dietary_profile: profile)
     end
   end
 

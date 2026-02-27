@@ -158,6 +158,230 @@ class Accounts::Api::V1::MealPlansControllerTest < ActionDispatch::IntegrationTe
     assert json["errors"].any?
   end
 
+  # ===========================================================================
+  # POST generate
+  # ===========================================================================
+
+  test "generate requires authentication" do
+    post "/#{@account.external_account_id}/api/v1/meal_plans/generate"
+    assert_response :unauthorized
+  end
+
+  test "generate requires write permission" do
+    post "/#{@account.external_account_id}/api/v1/meal_plans/generate",
+         params: { meal_plan: { name: "AI Plan", start_date: Date.today, end_date: Date.today + 6.days } },
+         headers: auth_header(@read_token),
+         as: :json
+    assert_response :forbidden
+  end
+
+  test "generate creates plan and enqueues job" do
+    assert_difference [ "MealPlan.count", "AiTaskStatus.count" ] do
+      assert_enqueued_with(job: MealPlanGenerationJob) do
+        post "/#{@account.external_account_id}/api/v1/meal_plans/generate",
+             params: {
+               meal_plan: {
+                 name: "AI Generated Plan",
+                 start_date: Date.today,
+                 end_date: Date.today + 6.days,
+                 daily_calories_target: 2000
+               },
+               preferences: [ "no_repeats", "high_variety" ],
+               special_requests: "Extra protein"
+             },
+             headers: auth_header(@write_token),
+             as: :json
+      end
+    end
+
+    assert_response :created
+    json = JSON.parse(response.body)
+    assert json["task_id"].present?
+    assert json["meal_plan_id"].present?
+    assert_equal "pending", json["status"]
+
+    # Verify days were generated
+    plan = MealPlan.find(json["meal_plan_id"])
+    assert_equal 7, plan.days.count
+  end
+
+  test "generate returns validation errors for invalid plan" do
+    assert_no_difference "MealPlan.count" do
+      post "/#{@account.external_account_id}/api/v1/meal_plans/generate",
+           params: { meal_plan: { name: "Missing Dates" } },
+           headers: auth_header(@write_token),
+           as: :json
+    end
+
+    assert_response :unprocessable_entity
+  end
+
+  # ===========================================================================
+  # GET generate_status
+  # ===========================================================================
+
+  test "generate_status requires authentication" do
+    task = @account.ai_task_statuses.create!(task_type: "meal_plan_generation")
+    get "/#{@account.external_account_id}/api/v1/meal_plans/generate_status/#{task.id}"
+    assert_response :unauthorized
+  end
+
+  test "generate_status returns pending task" do
+    task = @account.ai_task_statuses.create!(task_type: "meal_plan_generation")
+
+    get "/#{@account.external_account_id}/api/v1/meal_plans/generate_status/#{task.id}",
+        headers: auth_header(@read_token)
+
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal "pending", json["status"]
+    assert_equal 0, json["progress_percentage"]
+  end
+
+  test "generate_status returns 404 for nonexistent task" do
+    get "/#{@account.external_account_id}/api/v1/meal_plans/generate_status/nonexistent",
+        headers: auth_header(@read_token)
+    assert_response :not_found
+  end
+
+  # ===========================================================================
+  # POST swap_meal
+  # ===========================================================================
+
+  test "swap_meal requires authentication" do
+    meal_plan = create_meal_plan_with_meals
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/swap_meal"
+    assert_response :unauthorized
+  end
+
+  test "swap_meal requires write permission" do
+    meal_plan = create_meal_plan_with_meals
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/swap_meal",
+         params: { meal_id: "x", recipe_id: "y" },
+         headers: auth_header(@read_token),
+         as: :json
+    assert_response :forbidden
+  end
+
+  test "swap_meal returns 400 when params missing" do
+    meal_plan = create_meal_plan_with_meals
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/swap_meal",
+         headers: auth_header(@write_token),
+         as: :json
+    assert_response :bad_request
+  end
+
+  test "swap_meal swaps the recipe on a meal" do
+    meal_plan = create_meal_plan_with_meals
+    meal = meal_plan.days.first.meals.first
+    new_recipe = recipes(:two)
+
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/swap_meal",
+         params: { meal_id: meal.id, recipe_id: new_recipe.id },
+         headers: auth_header(@write_token),
+         as: :json
+
+    assert_response :success
+    assert_equal new_recipe.id, meal.reload.recipe_id
+  end
+
+  test "swap_meal returns 404 for meal not in plan" do
+    meal_plan = create_meal_plan_with_meals
+    other_plan = create_meal_plan_with_meals
+    other_meal = other_plan.days.first.meals.first
+
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/swap_meal",
+         params: { meal_id: other_meal.id, recipe_id: @recipe.id },
+         headers: auth_header(@write_token),
+         as: :json
+
+    assert_response :not_found
+  end
+
+  test "swap_meal returns 404 for nonexistent recipe" do
+    meal_plan = create_meal_plan_with_meals
+    meal = meal_plan.days.first.meals.first
+
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/swap_meal",
+         params: { meal_id: meal.id, recipe_id: "nonexistent" },
+         headers: auth_header(@write_token),
+         as: :json
+
+    assert_response :not_found
+  end
+
+  # ===========================================================================
+  # POST regenerate_day
+  # ===========================================================================
+
+  test "regenerate_day requires authentication" do
+    meal_plan = create_meal_plan_with_meals
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/regenerate_day"
+    assert_response :unauthorized
+  end
+
+  test "regenerate_day requires write permission" do
+    meal_plan = create_meal_plan_with_meals
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/regenerate_day",
+         params: { day_number: 1 },
+         headers: auth_header(@read_token),
+         as: :json
+    assert_response :forbidden
+  end
+
+  test "regenerate_day returns 404 for invalid day number" do
+    meal_plan = create_meal_plan_with_meals
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/regenerate_day",
+         params: { day_number: 99 },
+         headers: auth_header(@write_token),
+         as: :json
+    assert_response :not_found
+  end
+
+  test "regenerate_day clears meals and calls generator" do
+    meal_plan = create_meal_plan_with_meals
+    day = meal_plan.days.first
+    original_meal_count = day.meals.count
+    assert original_meal_count > 0
+
+    # Temporarily override MealPlanGenerator.new to return a fake
+    original_new = MealPlanGenerator.method(:new)
+    fake = Object.new
+    fake.define_singleton_method(:generate) { |&_block| { meals_assigned: 0, days_planned: 1 } }
+
+    MealPlanGenerator.define_singleton_method(:new) { |*_args, **_kwargs| fake }
+
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/regenerate_day",
+         params: { day_number: 1 },
+         headers: auth_header(@write_token),
+         as: :json
+
+    assert_response :success
+  ensure
+    MealPlanGenerator.define_singleton_method(:new, original_new)
+  end
+
+  test "regenerate_day returns error when generator fails" do
+    meal_plan = create_meal_plan_with_meals
+
+    original_new = MealPlanGenerator.method(:new)
+    fake = Object.new
+    fake.define_singleton_method(:generate) { |&_block| raise MealPlanGenerator::GenerationError, "Not enough recipes" }
+
+    MealPlanGenerator.define_singleton_method(:new) { |*_args, **_kwargs| fake }
+
+    post "/#{@account.external_account_id}/api/v1/meal_plans/#{meal_plan.id}/regenerate_day",
+         params: { day_number: 1 },
+         headers: auth_header(@write_token),
+         as: :json
+
+    assert_response :unprocessable_entity
+    json = JSON.parse(response.body)
+    assert_equal "Not enough recipes", json["error"]
+  ensure
+    MealPlanGenerator.define_singleton_method(:new, original_new)
+  end
+
   test "should calculate daily totals correctly" do
     meal_plan = create_meal_plan_with_meals
 

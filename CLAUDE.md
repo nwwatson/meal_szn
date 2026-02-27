@@ -84,6 +84,12 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 - `POST /:account_id/api/v1/meal_plans/:meal_plan_id/shopping_list` — generate via `ShoppingListGenerator`
 - `PATCH /:account_id/api/v1/meal_plans/:meal_plan_id/shopping_list/items/:id/toggle` — toggle item checked
 
+**Meal Plan Generation API** — async AI generation and modification:
+- `POST /:account_id/api/v1/meal_plans/generate` — creates plan, generates days, enqueues `MealPlanGenerationJob`, returns `{ task_id, meal_plan_id, status }`
+- `GET /:account_id/api/v1/meal_plans/generate_status/:task_id` — poll async generation progress
+- `POST /:account_id/api/v1/meal_plans/:id/swap_meal` — swap a meal's recipe (accepts `meal_id`, `recipe_id`)
+- `POST /:account_id/api/v1/meal_plans/:id/regenerate_day` — clear and re-generate meals for one day via AI (synchronous)
+
 ### AI Service Layer
 
 `Ai::Client` (`app/services/ai/client.rb`) wraps the Anthropic Claude API via the `anthropic` gem. Configured in `config/initializers/ai.rb` (default model: `claude-sonnet-4-20250514`, meal planning model: `claude-haiku-4-5-20251001`).
