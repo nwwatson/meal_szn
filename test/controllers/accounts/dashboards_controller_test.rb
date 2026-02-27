@@ -77,12 +77,121 @@ class Accounts::DashboardsControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", "Create Meal Plan"
   end
 
-  test "should assign today and shopping_list" do
+  # === Macro progress visualization tests ===
+
+  test "should show macro progress bars with targets when dietary profile exists" do
     sign_in_as(@session)
     get "/#{@account.external_account_id}"
     assert_response :success
-    # @today should be the day matching Date.current
-    # @shopping_list may be nil (no shopping list in fixtures)
-    # @dietary_profiles_count should be assigned
+    assert_select "[data-testid='macro-progress']" do
+      assert_select "span", /Calories/
+      assert_select "span", /Fat/
+      assert_select "span", /Protein/
+      assert_select "span", /Net Carbs/
+      # Should show target values from keto dietary profile (2000 cal)
+      assert_select "span", /2000/
+    end
+  end
+
+  test "should show macro totals without targets when no dietary profile" do
+    sign_in_as(@session)
+    # Deactivate all profiles and unlink from users instead of deleting
+    DietaryProfile.update_all(active: false, user_id: nil)
+    @account.meal_plans.update_all(daily_calories_target: nil)
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select "[data-testid='macro-progress']" do
+      assert_select "span", /Calories/
+    end
+  end
+
+  test "should fall back to meal plan calorie target when profile has no diet" do
+    sign_in_as(@session)
+    DietaryProfile.where(user_id: users(:one).id).update_all(diet_name: nil)
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select "[data-testid='macro-progress']"
+  end
+
+  # === Shopping list status tests ===
+
+  test "should show shopping list status when shopping list exists" do
+    sign_in_as(@session)
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select "[data-testid='shopping-list-status']" do
+      assert_select "h2", "Shopping List"
+      assert_select "p", /1 of 3 items/
+      assert_select "p", /2 remaining/
+    end
+  end
+
+  test "should not show shopping list section when no shopping list exists" do
+    sign_in_as(@session)
+    ShoppingListItem.delete_all
+    ShoppingList.delete_all
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select "[data-testid='shopping-list-status']", count: 0
+  end
+
+  test "should show all done message when all shopping list items checked" do
+    sign_in_as(@session)
+    ShoppingListItem.update_all(checked: true)
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select "[data-testid='shopping-list-status']" do
+      assert_select "p", /All done/
+      assert_select "span", /100%/
+    end
+  end
+
+  # === Empty state tests ===
+
+  test "should show empty recipes state when no recipes exist" do
+    sign_in_as(@session)
+    # Move plans to past instead of deleting to avoid FK issues
+    MealPlan.update_all(start_date: 1.year.ago, end_date: 11.months.ago)
+    MealPlanMealPortion.delete_all
+    MealPlanMeal.delete_all
+    Recipe.update_all(account_id: accounts(:two).id)
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select "h3", "No recipes yet"
+    assert_select "a", "Add Your First Recipe"
+  end
+
+  test "should show setup profiles hint when no dietary profiles and no plan" do
+    sign_in_as(@session)
+    MealPlan.update_all(start_date: 1.year.ago, end_date: 11.months.ago)
+    DietaryProfile.update_all(active: false, user_id: nil)
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select "a", "Set Up Profiles"
+  end
+
+  test "should render dashboard with no data at all" do
+    sign_in_as(@session)
+    MealPlan.update_all(start_date: 1.year.ago, end_date: 11.months.ago)
+    MealPlanMealPortion.delete_all
+    MealPlanMeal.delete_all
+    Recipe.update_all(account_id: accounts(:two).id)
+    DietaryProfile.update_all(active: false, user_id: nil)
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select "h1", /Welcome back/
+    assert_select "h3", "No active meal plan"
+    assert_select "h3", "No recipes yet"
+  end
+
+  # === Design aesthetic tests ===
+
+  test "should use warm design system classes" do
+    sign_in_as(@session)
+    get "/#{@account.external_account_id}"
+    assert_response :success
+    assert_select ".bg-warm-gradient"
+    assert_select ".card-warm"
+    assert_select ".fade-up"
   end
 end
