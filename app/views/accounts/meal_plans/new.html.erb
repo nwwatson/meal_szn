@@ -5,7 +5,5 @@
     <%= link_to "&larr; Back to Meal Plans".html_safe, meal_plans_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
   </div>
 
-  <h1 class="text-3xl font-display font-bold text-warm-900 mb-6">New Meal Plan</h1>
-
-  <%= render "form", meal_plan: @meal_plan %>
+  <%= render "wizard", meal_plan: @meal_plan %>
 </div>
