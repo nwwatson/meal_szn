@@ -123,6 +123,28 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 
 **Testing:** Accepts `cache_store:` kwarg; tests inject `MemoryStore` since test env uses `:null_store`.
 
+### MCP Server (Model Context Protocol)
+
+Integrated via `fast-mcp` gem. Mounted at `/mcp` with HTTP/SSE transport. Allows Claude Desktop (and other MCP clients) to interact with the app via bearer token authentication.
+
+**Configuration:** `config/initializers/fast_mcp.rb` — mounts middleware at `/mcp/sse` (SSE) and `/mcp/messages` (JSON-RPC). Tools auto-registered from `ApplicationTool.descendants`.
+
+**Authentication:** `ApplicationTool` (`app/tools/application_tool.rb`) base class uses fast-mcp's `authorize` block to validate bearer tokens against `Identity::AccessToken`. Sets `Current.identity`, `Current.account`, `Current.user` from token. Account resolved from token's identity → user → account (not URL-scoped).
+
+**Tools** (10 total in `app/tools/`):
+- `ListRecipesTool`, `GetRecipeTool`, `CreateRecipeTool` — recipe CRUD
+- `ListMealPlansTool`, `GetMealPlanTool`, `CreateMealPlanTool` — meal plan management
+- `GenerateMealPlanTool` — AI-powered async generation (enqueues `MealPlanGenerationJob`)
+- `GetDietaryProfilesTool` — active dietary profiles + available diets
+- `GetNutritionInfoTool` — recipe nutrition with diet compatibility
+- `GenerateShoppingListTool` — consolidated shopping list from meal plan
+
+**Tool patterns:** Inherit from `ApplicationTool`. Use `tool_name`, `description`, `arguments` DSL (Dry::Schema). Return `{ content: [{ type: "text", text: JSON }] }`. Errors return `{ ..., isError: true }`. Use `next false` (not `return false`) in `authorize` blocks.
+
+**Setup instructions:** Displayed on the Access Tokens page (`/identity/access_tokens`) with Claude Desktop config JSON template.
+
+**Testing:** Tests in `test/tools/`. Set up `Current` via `set_current_from_token` in setup, then call `tool.call(...)` directly (skip `authorized?` in tool-specific tests; auth tested separately in `application_tool_test.rb`).
+
 ### AI Background Jobs
 
 `AiBaseJob` (`app/jobs/ai_base_job.rb`) — base class for all AI jobs. Runs on dedicated `ai` queue (configured in `config/queue.yml`). Manages `AiTaskStatus` lifecycle automatically: pending → processing → completed/failed.
