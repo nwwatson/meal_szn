@@ -1,7 +1,10 @@
 class Accounts::Api::V1::RecipesController < Accounts::Api::V1::ApplicationController
+  include AiRateLimited
+
   before_action :require_write_permission!, only: %i[create update destroy import_url import_photo import_confirm]
   before_action :set_recipe, only: %i[show update destroy]
   before_action :set_task, only: %i[import_status import_confirm]
+  before_action -> { check_ai_rate_limit!(:recipe_import) }, only: %i[import_url import_photo]
 
   # GET /api/v1/recipes
   def index

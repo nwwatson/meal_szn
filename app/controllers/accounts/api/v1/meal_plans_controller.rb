@@ -1,8 +1,11 @@
 class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationController
+  include AiRateLimited
+
   before_action :require_write_permission!, only: %i[create update destroy generate swap_meal regenerate_day]
   before_action :set_meal_plan, only: %i[show update destroy swap_meal regenerate_day]
   before_action :set_user_for_create, only: %i[create generate]
   before_action :set_task, only: :generate_status
+  before_action -> { check_ai_rate_limit!(:meal_plan_generation) }, only: :generate
 
   # GET /api/v1/meal_plans
   def index

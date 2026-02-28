@@ -1,6 +1,12 @@
 class Accounts::RecipesController < ApplicationController
+  include AiRateLimited
+
   before_action :set_recipe, only: %i[show edit update destroy resolve_ingredients apply_resolution]
   before_action :set_unit_options, only: %i[new edit create update resolve_ingredients]
+  before_action -> { check_ai_rate_limit!(:recipe_import, redirect_path: import_url_recipes_path) },
+                only: %i[start_import start_photo_import]
+  before_action -> { check_ai_rate_limit!(:quick_entry, redirect_path: quick_entry_recipes_path) },
+                only: :start_quick_entry
 
   def index
     recipes = Current.account.recipes
