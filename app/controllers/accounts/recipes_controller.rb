@@ -47,7 +47,7 @@ class Accounts::RecipesController < ApplicationController
   def show
     @meal_plans = Current.account.meal_plans
       .where("end_date >= ?", Date.current)
-      .includes(:days)
+      .includes(days: { meals: :recipe })
       .order(start_date: :asc)
   end
 
