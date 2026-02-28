@@ -74,6 +74,7 @@ module RecipeImport
         ingredients: parse_ingredients(data["recipeIngredient"]),
         instructions: parse_instructions(data["recipeInstructions"]),
         nutrition: parse_nutrition(data["nutrition"]),
+        image_url: extract_image_url(data["image"]),
         source: data["url"] || data["mainEntityOfPage"]
       }.compact
     end
@@ -137,6 +138,14 @@ module RecipeImport
     def extract_number(value)
       return nil unless value
       value.to_s[/[\d.]+/]&.to_f&.round(1)
+    end
+
+    def extract_image_url(value)
+      case value
+      when String then value.strip.presence
+      when Hash then value["url"]&.to_s&.strip&.presence
+      when Array then extract_image_url(value.first)
+      end
     end
   end
 end

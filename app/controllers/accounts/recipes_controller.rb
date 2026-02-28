@@ -72,6 +72,7 @@ class Accounts::RecipesController < ApplicationController
   end
 
   def update
+    purge_image_if_requested
     if @recipe.update(recipe_params)
       @recipe.sync_tags_from_list(params[:recipe][:tag_list], Current.account)
       handle_nutrition_after_save
@@ -209,6 +210,7 @@ class Accounts::RecipesController < ApplicationController
     build_ingredients_from_import(result[:ingredients] || [])
     build_instructions_from_import(result[:instructions] || [])
     build_nutrition_from_import(result[:nutrition])
+    attach_imported_image(result[:image_url])
 
     @recipe.ingredients.build if @recipe.ingredients.empty?
     @recipe.instructions.build if @recipe.instructions.empty?
@@ -320,6 +322,29 @@ class Accounts::RecipesController < ApplicationController
     )
   end
 
+  def attach_imported_image(image_url)
+    return if image_url.blank?
+
+    uri = URI.parse(image_url)
+    return unless uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
+
+    response = Net::HTTP.get_response(uri)
+    return unless response.is_a?(Net::HTTPSuccess)
+
+    content_type = response["content-type"]&.split(";")&.first
+    return unless content_type&.in?(Recipe::ALLOWED_IMAGE_TYPES)
+
+    extension = content_type.split("/").last
+    @recipe.image.attach(
+      io: StringIO.new(response.body),
+      filename: "imported-cover.#{extension}",
+      content_type: content_type
+    )
+  rescue URI::InvalidURIError, SocketError, Timeout::Error, Errno::ECONNREFUSED
+    # Silently skip — image is optional
+    nil
+  end
+
   def parse_ingredient_text(text)
     # Match patterns like "2 cups almond flour" or "1/2 tsp salt"
     match = text.match(/\A([\d\s\/½¼¾⅓⅔⅛.]+)?\s*(#{Ingredient::UNITS_PATTERN})?\s*(.+)\z/i)
@@ -327,6 +352,13 @@ class Accounts::RecipesController < ApplicationController
       { quantity: match[1]&.strip, unit: match[2]&.strip&.downcase, name: match[3]&.strip }
     else
       { quantity: nil, unit: nil, name: text.strip }
+    end
+  end
+
+  def purge_image_if_requested
+    if params[:purge_image_id].present?
+      attachment = @recipe.images.find { |img| img.id.to_s == params[:purge_image_id].to_s }
+      attachment&.purge_later
     end
   end
 
@@ -340,6 +372,7 @@ class Accounts::RecipesController < ApplicationController
       :prep_time,
       :cook_time,
       :image,
+      images: [],
       ingredients_attributes: %i[id name quantity unit display_order _destroy],
       instructions_attributes: %i[id step_number instruction _destroy],
       nutrition_data_attributes: %i[

@@ -2,7 +2,7 @@
     data: { controller: "recipe-card", recipe_card_index_value: index } do %>
   <div class="relative h-40 overflow-hidden">
     <% if recipe.image.attached? %>
-      <%= image_tag recipe.image.variant(resize_to_fill: [600, 300]),
+      <%= image_tag recipe.image.variant(:card),
           class: "w-full h-full object-cover recipe-card-image",
           loading: "lazy", alt: recipe.title %>
       <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>

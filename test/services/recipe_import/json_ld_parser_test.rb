@@ -97,6 +97,37 @@ class RecipeImport::JsonLdParserTest < ActiveSupport::TestCase
     assert_equal "Step one", result[:instructions].first[:instruction]
   end
 
+  test "extracts image URL as string" do
+    result = RecipeImport::JsonLdParser.new(fixture_html("recipe_with_jsonld.html")).parse
+    assert_equal "https://example.com/images/salmon.jpg", result[:image_url]
+  end
+
+  test "extracts image URL from ImageObject hash" do
+    html = <<~HTML
+      <html><head>
+      <script type="application/ld+json">
+      {"@type":"Recipe","name":"Test","image":{"@type":"ImageObject","url":"https://example.com/photo.jpg"},"recipeIngredient":["water"],"recipeInstructions":["cook"]}
+      </script>
+      </head><body></body></html>
+    HTML
+
+    result = RecipeImport::JsonLdParser.new(html).parse
+    assert_equal "https://example.com/photo.jpg", result[:image_url]
+  end
+
+  test "extracts image URL from array" do
+    html = <<~HTML
+      <html><head>
+      <script type="application/ld+json">
+      {"@type":"Recipe","name":"Test","image":["https://example.com/1.jpg","https://example.com/2.jpg"],"recipeIngredient":["water"],"recipeInstructions":["cook"]}
+      </script>
+      </head><body></body></html>
+    HTML
+
+    result = RecipeImport::JsonLdParser.new(html).parse
+    assert_equal "https://example.com/1.jpg", result[:image_url]
+  end
+
   test "handles invalid JSON gracefully" do
     html = <<~HTML
       <html><head>

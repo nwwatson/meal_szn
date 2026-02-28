@@ -1,8 +1,16 @@
 class Recipe < ApplicationRecord
   include Identifiable
 
+  ALLOWED_IMAGE_TYPES = %w[image/jpeg image/png image/webp image/gif].freeze
+  MAX_IMAGE_SIZE = 10.megabytes
+
   belongs_to :account
-  has_one_attached :image
+  has_one_attached :image do |attachable|
+    attachable.variant :thumbnail, resize_to_fill: [ 200, 200 ]
+    attachable.variant :card, resize_to_fill: [ 400, 300 ]
+    attachable.variant :full, resize_to_fill: [ 1200, 800 ]
+  end
+  has_many_attached :images
   has_many :ingredients, -> { order(:display_order) }, dependent: :destroy
   has_many :instructions, class_name: "RecipeInstruction", dependent: :destroy
   has_one :nutrition_data, class_name: "RecipeNutritionData", dependent: :destroy
@@ -13,6 +21,8 @@ class Recipe < ApplicationRecord
 
   validates :title, presence: true
   validates :category, presence: true
+  validate :validate_image_attachment
+  validate :validate_images_attachments
 
   enum :category, {
     breakfast: 0,
@@ -129,5 +139,29 @@ class Recipe < ApplicationRecord
       nutrition_per_serving: nutrition_data&.to_meal_planning_response,
       tags: tags.pluck(:name)
     }
+  end
+
+  private
+
+  def validate_image_attachment
+    validate_single_image(image, :image) if image.attached?
+  end
+
+  def validate_images_attachments
+    return unless images.attached?
+
+    images.each do |img|
+      validate_single_image(img, :images)
+    end
+  end
+
+  def validate_single_image(img, attribute)
+    unless img.blob.content_type.in?(ALLOWED_IMAGE_TYPES)
+      errors.add(attribute, "must be a JPEG, PNG, WebP, or GIF file")
+    end
+
+    if img.blob.byte_size > MAX_IMAGE_SIZE
+      errors.add(attribute, "must be less than 10MB")
+    end
   end
 end

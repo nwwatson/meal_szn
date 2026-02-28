@@ -13,7 +13,7 @@ module RecipesHelper
 
     if recipe.image.attached?
       content_tag(:div, class: "relative #{height} overflow-hidden") do
-        image_tag(recipe.image.variant(resize_to_fill: [ 600, 300 ]),
+        image_tag(recipe.image.variant(:card),
           class: "w-full h-full object-cover",
           loading: "lazy",
           alt: recipe.title) +
@@ -32,7 +32,7 @@ module RecipesHelper
 
     if recipe.image.attached?
       content_tag(:div, class: "relative h-64 sm:h-80 overflow-hidden rounded-t-lg") do
-        image_tag(recipe.image.variant(resize_to_fill: [ 1200, 500 ]),
+        image_tag(recipe.image.variant(:full),
           class: "w-full h-full object-cover",
           alt: recipe.title) +
         content_tag(:div, "", class: "absolute inset-0 bg-gradient-to-t from-black/30 to-transparent")

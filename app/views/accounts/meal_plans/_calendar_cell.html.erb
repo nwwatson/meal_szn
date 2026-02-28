@@ -7,7 +7,7 @@
         <div class="flex items-start gap-1.5">
           <% if meal.recipe.image.attached? %>
             <div class="w-8 h-8 rounded overflow-hidden shrink-0">
-              <%= image_tag meal.recipe.image.variant(resize_to_fill: [64, 64]), class: "w-full h-full object-cover", loading: "lazy", alt: meal.recipe.title %>
+              <%= image_tag meal.recipe.image.variant(:thumbnail), class: "w-full h-full object-cover", loading: "lazy", alt: meal.recipe.title %>
             </div>
           <% end %>
           <div class="flex-1 min-w-0">
