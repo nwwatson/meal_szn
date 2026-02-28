@@ -23,10 +23,8 @@ class Accounts::MealPlansController < ApplicationController
     next_monday = Date.current.beginning_of_week + 7.days
     @meal_plan = Current.account.meal_plans.build(
       start_date: next_monday,
-      end_date: next_monday + 6.days,
-      name: "Week of #{next_monday.strftime('%b %-d, %Y')}"
+      end_date: next_monday + 6.days
     )
-    @available_profiles = Current.account.dietary_profiles.active.order(:name)
   end
 
   def create

@@ -34,7 +34,7 @@ class Accounts::MealPlansControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(@session)
     get "#{account_path_prefix}/meal_plans/new"
     assert_response :success
-    assert_select "h1", "New Meal Plan"
+    assert_select "[data-controller*='meal-plan-wizard']"
   end
 
   test "should create meal plan and auto-generate days" do
@@ -281,12 +281,32 @@ class Accounts::MealPlansControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Generation failed: Not enough recipes", flash[:alert]
   end
 
-  test "new form includes AI generate toggle" do
+  test "new form includes AI generate controls" do
     sign_in_as(@session)
     get "#{account_path_prefix}/meal_plans/new"
     assert_response :success
     assert_select "[data-controller*='ai-generate']"
-    assert_select "[data-ai-generate-target='toggleButton']"
+  end
+
+  test "new form renders wizard with calendar" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/new"
+    assert_response :success
+    assert_select "[data-meal-plan-wizard-target='calendarGrid']"
+  end
+
+  test "new form renders duration buttons" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/new"
+    assert_response :success
+    assert_select "[data-meal-plan-wizard-target='durationButton']", 5
+  end
+
+  test "new form renders AI preferences in wizard" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/new"
+    assert_response :success
+    assert_select "[data-preference-key]", MealPlanGenerator::PREFERENCE_OPTIONS.size
   end
 
   # === Calendar view tests ===

@@ -13,27 +13,39 @@ export default class extends Controller {
     this.active = !this.active
 
     if (this.active) {
-      this.panelTarget.classList.remove("hidden")
-      this.chevronTarget.style.transform = "rotate(180deg)"
-      this.toggleButtonTarget.classList.remove("border-dashed", "border-warm-300")
-      this.toggleButtonTarget.classList.add("border-solid", "border-primary-400", "bg-primary-50/50")
-      this.iconWrapTarget.classList.remove("bg-warm-100")
-      this.iconWrapTarget.classList.add("bg-primary-100")
-      this.iconTarget.classList.remove("text-warm-500")
-      this.iconTarget.classList.add("text-primary-600")
-      this.manualSubmitTarget.classList.add("hidden")
-      this.aiSubmitTarget.classList.remove("hidden")
+      if (this.hasPanelTarget) this.panelTarget.classList.remove("hidden")
+      if (this.hasChevronTarget) this.chevronTarget.style.transform = "rotate(180deg)"
+      if (this.hasToggleButtonTarget) {
+        this.toggleButtonTarget.classList.remove("border-dashed", "border-warm-300")
+        this.toggleButtonTarget.classList.add("border-solid", "border-primary-400", "bg-primary-50/50")
+      }
+      if (this.hasIconWrapTarget) {
+        this.iconWrapTarget.classList.remove("bg-warm-100")
+        this.iconWrapTarget.classList.add("bg-primary-100")
+      }
+      if (this.hasIconTarget) {
+        this.iconTarget.classList.remove("text-warm-500")
+        this.iconTarget.classList.add("text-primary-600")
+      }
+      if (this.hasManualSubmitTarget) this.manualSubmitTarget.classList.add("hidden")
+      if (this.hasAiSubmitTarget) this.aiSubmitTarget.classList.remove("hidden")
     } else {
-      this.panelTarget.classList.add("hidden")
-      this.chevronTarget.style.transform = ""
-      this.toggleButtonTarget.classList.add("border-dashed", "border-warm-300")
-      this.toggleButtonTarget.classList.remove("border-solid", "border-primary-400", "bg-primary-50/50")
-      this.iconWrapTarget.classList.add("bg-warm-100")
-      this.iconWrapTarget.classList.remove("bg-primary-100")
-      this.iconTarget.classList.add("text-warm-500")
-      this.iconTarget.classList.remove("text-primary-600")
-      this.manualSubmitTarget.classList.remove("hidden")
-      this.aiSubmitTarget.classList.add("hidden")
+      if (this.hasPanelTarget) this.panelTarget.classList.add("hidden")
+      if (this.hasChevronTarget) this.chevronTarget.style.transform = ""
+      if (this.hasToggleButtonTarget) {
+        this.toggleButtonTarget.classList.add("border-dashed", "border-warm-300")
+        this.toggleButtonTarget.classList.remove("border-solid", "border-primary-400", "bg-primary-50/50")
+      }
+      if (this.hasIconWrapTarget) {
+        this.iconWrapTarget.classList.add("bg-warm-100")
+        this.iconWrapTarget.classList.remove("bg-primary-100")
+      }
+      if (this.hasIconTarget) {
+        this.iconTarget.classList.add("text-warm-500")
+        this.iconTarget.classList.remove("text-primary-600")
+      }
+      if (this.hasManualSubmitTarget) this.manualSubmitTarget.classList.remove("hidden")
+      if (this.hasAiSubmitTarget) this.aiSubmitTarget.classList.add("hidden")
     }
   }
 
