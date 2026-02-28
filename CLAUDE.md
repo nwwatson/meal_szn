@@ -113,6 +113,16 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 - **Category-proportional selection**: Ensures minimum representation (`MIN_PER_CATEGORY = 3`) per active meal type category
 - Accepts `current_date:` override for deterministic testing
 
+### AI Rate Limiting
+
+`Ai::RateLimiter` (`app/services/ai/rate_limiter.rb`) enforces per-account rate limits on AI features using `Rails.cache` (Solid Cache in production). Limits configured in `config/initializers/ai_rate_limits.rb`, overridable via env vars (`AI_RATE_LIMIT_RECIPE_IMPORT`, etc.).
+
+**Default limits:** recipe imports 20/hr, meal plan generations 10/hr, quick entry 30/hr.
+
+**Controller integration:** `AiRateLimited` concern (`app/controllers/concerns/ai_rate_limited.rb`) provides `check_ai_rate_limit!(feature)` — returns 429 with `Retry-After` header for API, redirects with flash for web. Used as `before_action` in both web and API controllers.
+
+**Testing:** Accepts `cache_store:` kwarg; tests inject `MemoryStore` since test env uses `:null_store`.
+
 ### AI Background Jobs
 
 `AiBaseJob` (`app/jobs/ai_base_job.rb`) — base class for all AI jobs. Runs on dedicated `ai` queue (configured in `config/queue.yml`). Manages `AiTaskStatus` lifecycle automatically: pending → processing → completed/failed.

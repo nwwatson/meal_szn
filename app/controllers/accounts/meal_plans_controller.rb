@@ -1,5 +1,9 @@
 class Accounts::MealPlansController < ApplicationController
+  include AiRateLimited
+
   before_action :set_meal_plan, only: %i[show edit update destroy duplicate]
+  before_action -> { check_ai_rate_limit!(:meal_plan_generation, redirect_path: new_meal_plan_path) },
+                only: :start_generate
 
   def index
     plans = Current.account.meal_plans.includes(:days).recent
