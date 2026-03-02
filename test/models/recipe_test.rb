@@ -313,6 +313,86 @@ class RecipeTest < ActiveSupport::TestCase
     end
   end
 
+  # --- Rating tests ---
+
+  test "rating validates inclusion in 1 to 5" do
+    recipe = recipes(:one)
+
+    (1..5).each do |r|
+      recipe.rating = r
+      assert recipe.valid?, "Expected rating #{r} to be valid"
+    end
+
+    recipe.rating = 0
+    assert_not recipe.valid?
+    recipe.rating = 6
+    assert_not recipe.valid?
+    recipe.rating = -1
+    assert_not recipe.valid?
+  end
+
+  test "rating allows nil" do
+    recipe = recipes(:one)
+    recipe.rating = nil
+    assert recipe.valid?
+  end
+
+  test "by_min_rating scope returns recipes at or above threshold" do
+    account = accounts(:one)
+    r5 = account.recipes.create!(title: "Five Star", category: :dinner, rating: 5)
+    r3 = account.recipes.create!(title: "Three Star", category: :dinner, rating: 3)
+    r1 = account.recipes.create!(title: "One Star", category: :dinner, rating: 1)
+
+    results = Recipe.by_min_rating(4)
+    assert_includes results, r5
+    assert_not_includes results, r3
+    assert_not_includes results, r1
+
+    results = Recipe.by_min_rating(3)
+    assert_includes results, r5
+    assert_includes results, r3
+    assert_not_includes results, r1
+  ensure
+    [ r5, r3, r1 ].compact.each(&:destroy)
+  end
+
+  test "by_min_rating scope returns all when nil" do
+    assert_equal Recipe.all.to_a, Recipe.by_min_rating(nil).to_a
+  end
+
+  test "sorted_by highest_rated orders 5-star first and unrated mid" do
+    account = accounts(:one)
+    r5 = account.recipes.create!(title: "Five Star", category: :dinner, rating: 5)
+    r_nil = account.recipes.create!(title: "Unrated", category: :dinner, rating: nil)
+    r2 = account.recipes.create!(title: "Two Star", category: :dinner, rating: 2)
+
+    results = account.recipes.sorted_by("highest_rated").to_a
+    r5_idx = results.index(r5)
+    r_nil_idx = results.index(r_nil)
+    r2_idx = results.index(r2)
+
+    assert r5_idx < r_nil_idx, "5-star should come before unrated"
+    assert r_nil_idx < r2_idx, "Unrated (treated as 3) should come before 2-star"
+  ensure
+    [ r5, r_nil, r2 ].compact.each(&:destroy)
+  end
+
+  test "to_api_response includes rating" do
+    recipe = recipes(:one)
+    recipe.update!(rating: 4)
+    response = recipe.to_api_response
+
+    assert_equal 4, response[:rating]
+  end
+
+  test "to_meal_planning_response includes rating" do
+    recipe = recipes(:one)
+    recipe.update!(rating: 5)
+    response = recipe.to_meal_planning_response
+
+    assert_equal 5, response[:rating]
+  end
+
   test "does not enqueue nutrition calculation when manual nutrition exists" do
     recipe = recipes(:one)
     # recipes(:one) has nutrition_data with auto_calculated: false

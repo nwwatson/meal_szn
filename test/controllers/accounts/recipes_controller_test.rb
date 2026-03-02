@@ -613,4 +613,52 @@ class Accounts::RecipesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", import_photo_recipes_path
     assert_select "a[href=?]", quick_entry_recipes_path
   end
+
+  # --- Rating ---
+
+  test "rate action updates recipe rating and returns turbo_stream" do
+    sign_in_as(@session)
+
+    patch "#{account_path_prefix}/recipes/#{@recipe.id}/rate", params: { rating: 4 },
+      headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_equal 4, @recipe.reload.rating
+  end
+
+  test "rate action with 0 clears rating to nil" do
+    sign_in_as(@session)
+    @recipe.update!(rating: 3)
+
+    patch "#{account_path_prefix}/recipes/#{@recipe.id}/rate", params: { rating: 0 },
+      headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_nil @recipe.reload.rating
+  end
+
+  test "rate action falls back to redirect for HTML" do
+    sign_in_as(@session)
+
+    patch "#{account_path_prefix}/recipes/#{@recipe.id}/rate", params: { rating: 5 }
+
+    assert_response :redirect
+    assert_equal 5, @recipe.reload.rating
+  end
+
+  test "index with min_rating filters correctly" do
+    sign_in_as(@session)
+    @recipe.update!(rating: 5)
+    recipes(:two).update!(rating: 2)
+
+    get "#{account_path_prefix}/recipes", params: { min_rating: 4 }
+    assert_response :success
+    assert_select "h2", @recipe.title
+  end
+
+  test "index with highest_rated sort works" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/recipes", params: { sort: "highest_rated" }
+    assert_response :success
+  end
 end

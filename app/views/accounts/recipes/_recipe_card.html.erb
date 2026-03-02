@@ -35,6 +35,11 @@
 
   <div class="p-4">
     <h2 class="text-base font-display font-bold text-warm-900 group-hover:text-primary-700 transition-colors mb-1 line-clamp-1"><%= recipe.title %></h2>
+    <% if recipe.rating %>
+      <div class="mb-1">
+        <%= render "accounts/recipes/star_rating", recipe: recipe, interactive: false, size: "w-3.5 h-3.5" %>
+      </div>
+    <% end %>
     <% if recipe.description.present? %>
       <p class="text-warm-500 text-sm mb-3 line-clamp-2"><%= recipe.description %></p>
     <% end %>

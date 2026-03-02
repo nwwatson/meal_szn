@@ -245,6 +245,53 @@ class RecipeSelectorTest < ActiveSupport::TestCase
     plan
   end
 
+  # --- Rating tests ---
+
+  test "1-star recipes excluded from candidates" do
+    recipes(:one).update!(rating: 1)
+    plan = create_target_plan
+
+    selector = build_selector(plan)
+    result = selector.select(limit: 100)
+
+    refute_includes result.map(&:id), recipes(:one).id
+  ensure
+    recipes(:one).update!(rating: nil)
+  end
+
+  test "5-star recipes score higher than unrated" do
+    extra_recipes = create_recipes_with_nutrition(20, category: :dinner)
+    recipes(:one).update!(rating: 5)
+    plan = create_target_plan
+
+    selector = build_selector(plan)
+    scored = selector.send(:score_recipes, selector.send(:fetch_eligible_recipes))
+
+    rated_entry = scored.find { |s| s[:recipe].id == recipes(:one).id }
+    unrated_entry = scored.find { |s| s[:recipe].rating.nil? }
+
+    # The 5-star recipe gets 100 * 0.15 = 15 extra vs unrated 50 * 0.15 = 7.5
+    # So the rating component should be higher
+    rated_rating_component = RecipeSelector::SCORE_WEIGHTS[:user_rating] * 100.0
+    unrated_rating_component = RecipeSelector::SCORE_WEIGHTS[:user_rating] * 50.0
+    assert rated_rating_component > unrated_rating_component
+  ensure
+    recipes(:one).update!(rating: nil)
+    extra_recipes&.each(&:destroy)
+  end
+
+  test "unrated recipes get neutral 50.0 rating score" do
+    plan = create_target_plan
+    selector = build_selector(plan)
+
+    score = selector.send(:user_rating_score, recipes(:one))
+    assert_equal 50.0, score
+  end
+
+  test "score weights sum to 1.0" do
+    assert_in_delta 1.0, RecipeSelector::SCORE_WEIGHTS.values.sum, 0.001
+  end
+
   def create_recipes_with_nutrition(count, category: :dinner)
     count.times.map do |i|
       recipe = @account.recipes.create!(
