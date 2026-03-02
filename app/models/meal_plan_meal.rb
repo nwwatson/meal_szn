@@ -1,7 +1,7 @@
 class MealPlanMeal < ApplicationRecord
   include Identifiable
 
-  belongs_to :meal_plan_day
+  belongs_to :meal_plan_day, touch: true
   belongs_to :recipe
   has_many :portions, class_name: "MealPlanMealPortion", dependent: :destroy
 

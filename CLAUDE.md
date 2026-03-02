@@ -55,6 +55,15 @@ All primary keys are string UUIDs. Key models:
 
 Uses Pagy gem (`config/initializers/pagy.rb`) with `pagy_countless` for "Load More" UX (no total count query). Default 12 items per page. `Pagy::Backend` included in `ApplicationController`, `Pagy::Frontend` in `ApplicationHelper`.
 
+### Caching Strategy
+
+Uses Solid Cache in production (`:memory_store` in dev). Cache strategy:
+
+- **Touch chains:** Child models (`Ingredient`, `RecipeInstruction`, `RecipeNutritionData`, `RecipeTip`, `MealPlanDay`, `MealPlanMeal`) use `touch: true` on `belongs_to` to auto-invalidate parent `updated_at`/`cache_key`.
+- **Russian-doll fragment caching:** `_recipe_card.html.erb` wrapped in `<% cache recipe %>` — auto-invalidated when recipe or any child record changes via touch chain.
+- **Method-level caching:** `Recipe#to_meal_planning_response` cached via `Rails.cache.fetch("#{cache_key_with_version}/meal_planning_response")`.
+- **USDA API caching:** `Usda::Client` caches search and food responses in `Rails.cache` with 24h TTL. Cache keys: `usda:search:#{sha256}` and `usda:food:#{fdc_id}`.
+
 ### Recipe Browser
 
 The recipe index (`accounts/recipes#index`) supports search, sort, and filtering via model scopes on `Recipe`:

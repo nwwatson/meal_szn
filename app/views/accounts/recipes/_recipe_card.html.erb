@@ -1,3 +1,4 @@
+<% cache recipe do %>
 <%= link_to recipe_path(recipe), class: "block bg-white rounded-2xl overflow-hidden recipe-card-hover group",
     data: { controller: "recipe-card", recipe_card_index_value: index } do %>
   <div class="relative h-40 overflow-hidden">
@@ -68,4 +69,5 @@
       </div>
     <% end %>
   </div>
+<% end %>
 <% end %>

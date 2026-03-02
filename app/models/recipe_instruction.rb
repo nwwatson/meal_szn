@@ -1,7 +1,7 @@
 class RecipeInstruction < ApplicationRecord
   include Identifiable
 
-  belongs_to :recipe
+  belongs_to :recipe, touch: true
 
   validates :step_number, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :instruction, presence: true
