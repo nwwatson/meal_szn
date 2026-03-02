@@ -31,7 +31,8 @@ module RecipeImport
         messages: [ { role: "user", content: content } ],
         tools: [ RECIPE_TOOL ],
         system: SYSTEM_PROMPT,
-        max_tokens: 4096
+        max_tokens: 4096,
+        feature: "recipe_photo_import"
       )
 
       normalize(result[:input])
