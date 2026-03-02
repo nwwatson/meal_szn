@@ -309,6 +309,47 @@ class Accounts::MealPlansControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-preference-key]", MealPlanGenerator::PREFERENCE_OPTIONS.size
   end
 
+  # === Regenerate day tests ===
+
+  test "regenerate_day clears meals and redirects" do
+    sign_in_as(@session)
+    day = @meal_plan.days.first
+    assert day.meals.count > 0
+
+    # In test env, AI client raises AuthenticationError (no API key),
+    # which the controller rescues and redirects with alert
+    post "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/regenerate_day",
+      params: { day_number: day.day_number }
+
+    assert_redirected_to "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    # Meals are destroyed before generation is attempted
+    assert_equal 0, day.reload.meals.count
+  end
+
+  test "regenerate_day with invalid day number shows alert" do
+    sign_in_as(@session)
+
+    post "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/regenerate_day",
+      params: { day_number: 999 }
+
+    assert_redirected_to "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_includes flash[:alert], "not found"
+  end
+
+  test "show renders swap buttons on meal cards" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_response :success
+    assert_select "[data-controller='meal-swap']"
+  end
+
+  test "show renders regenerate day buttons" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_response :success
+    assert_select "form[action*='regenerate_day']"
+  end
+
   # === Calendar view tests ===
 
   test "show renders week navigation for long plans" do

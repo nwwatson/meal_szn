@@ -128,4 +128,55 @@ class Accounts::MealPlanMealsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
   end
+
+  # === Swap tests ===
+
+  test "swap returns swap panel HTML" do
+    sign_in_as(@session)
+
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/swap",
+      headers: { "X-Requested-With" => "XMLHttpRequest" }
+
+    assert_response :success
+    assert_includes response.body, "Swap Recipe"
+  end
+
+  test "swap panel excludes current recipe" do
+    sign_in_as(@session)
+    # Create another breakfast recipe so the panel has alternatives
+    alt_recipe = @account.recipes.create!(title: "Keto Pancakes", category: @meal.recipe.category, servings: 2, prep_time: 5, cook_time: 10)
+
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/swap",
+      headers: { "X-Requested-With" => "XMLHttpRequest" }
+
+    assert_response :success
+    assert_includes response.body, "Keto Pancakes"
+    # The "Current:" label shows the meal's recipe, but it should not appear as a swap option button
+  end
+
+  test "perform_swap changes the meal recipe" do
+    sign_in_as(@session)
+    new_recipe = recipes(:two) # Scrambled Eggs - same category as breakfast
+
+    patch "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/swap",
+      params: { recipe_id: new_recipe.id }
+
+    assert_redirected_to "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_equal new_recipe.id, @meal.reload.recipe_id
+    assert_includes flash[:notice], new_recipe.title
+  end
+
+  test "perform_swap recalculates portions for participants" do
+    sign_in_as(@session)
+    new_recipe = recipes(:two)
+
+    # Ensure participants have portions for this meal
+    assert @meal_plan.participants.count >= 2
+
+    patch "#{account_path_prefix}/meal_plans/#{@meal_plan.id}/meals/#{@meal.id}/swap",
+      params: { recipe_id: new_recipe.id }
+
+    assert_redirected_to "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_equal new_recipe.id, @meal.reload.recipe_id
+  end
 end

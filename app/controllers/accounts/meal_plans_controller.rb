@@ -1,9 +1,9 @@
 class Accounts::MealPlansController < ApplicationController
   include AiRateLimited
 
-  before_action :set_meal_plan, only: %i[show edit update destroy duplicate]
+  before_action :set_meal_plan, only: %i[show edit update destroy duplicate regenerate_day]
   before_action -> { check_ai_rate_limit!(:meal_plan_generation, redirect_path: new_meal_plan_path) },
-                only: :start_generate
+                only: %i[start_generate regenerate_day]
 
   def index
     plans = Current.account.meal_plans.includes(:days).recent
@@ -94,6 +94,25 @@ class Accounts::MealPlansController < ApplicationController
     elsif @task.failed?
       redirect_to meal_plan_path(@meal_plan), alert: "Generation failed: #{@task.error_message}"
     end
+  end
+
+  def regenerate_day
+    day_number = params[:day_number].to_i
+    day = @meal_plan.days.find_by(day_number: day_number)
+
+    unless day
+      redirect_to meal_plan_path(@meal_plan), alert: "Day #{day_number} not found."
+      return
+    end
+
+    day.meals.destroy_all
+
+    generator = MealPlanGenerator.new(@meal_plan.reload)
+    generator.generate
+
+    redirect_to meal_plan_path(@meal_plan), notice: "Day #{day_number} regenerated with new meals."
+  rescue MealPlanGenerator::GenerationError, Ai::Client::AuthenticationError => e
+    redirect_to meal_plan_path(@meal_plan), alert: "Regeneration failed: #{e.message}"
   end
 
   def duplicate
