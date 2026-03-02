@@ -41,33 +41,48 @@ class NavigationHelperTest < ActionView::TestCase
     assert_includes html, 'href="/dashboard"'
   end
 
-  test "mobile_drawer_link renders active state with bg-white/15" do
+  test "bottom_nav_tab renders active state with primary-600 color" do
     self.stubbed_controller_name = "recipes"
-    html = mobile_drawer_link("Recipes", "/recipes", controller_match: %w[recipes], icon: "M12 6v12")
+    html = bottom_nav_tab("Recipes", "/recipes", controller_match: %w[recipes], icon: "M12 6v12")
 
-    assert_includes html, "bg-white/15"
+    assert_includes html, "text-primary-600"
     assert_includes html, "Recipes"
-  end
-
-  test "mobile_drawer_link renders inactive state" do
-    self.stubbed_controller_name = "dashboards"
-    html = mobile_drawer_link("Recipes", "/recipes", controller_match: %w[recipes], icon: "M12 6v12")
-
-    assert_not_includes html, "bg-white/15"
-    assert_includes html, "text-primary-200"
-  end
-
-  test "mobile_drawer_link renders SVG icon when provided" do
-    html = mobile_drawer_link("Dashboard", "/", controller_match: %w[other], icon: "M2.25 12l8.954-8.955")
-
     assert_includes html, "<svg"
-    assert_includes html, "M2.25 12l8.954-8.955"
+    assert_includes html, "M12 6v12"
   end
 
-  test "mobile_drawer_link works without icon" do
-    html = mobile_drawer_link("Dashboard", "/", controller_match: %w[other])
+  test "bottom_nav_tab renders inactive state with warm-400 color" do
+    self.stubbed_controller_name = "dashboards"
+    html = bottom_nav_tab("Recipes", "/recipes", controller_match: %w[recipes], icon: "M12 6v12")
 
-    assert_not_includes html, "<svg"
-    assert_includes html, "Dashboard"
+    assert_includes html, "text-warm-400"
+    assert_not_includes html, "text-primary-600"
+  end
+
+  test "bottom_nav_tab uses thicker stroke for active tab" do
+    self.stubbed_controller_name = "recipes"
+    html = bottom_nav_tab("Recipes", "/recipes", controller_match: %w[recipes], icon: "M12 6v12")
+
+    assert_includes html, 'stroke_width="2"'
+  end
+
+  test "bottom_nav_tab uses thinner stroke for inactive tab" do
+    self.stubbed_controller_name = "dashboards"
+    html = bottom_nav_tab("Recipes", "/recipes", controller_match: %w[recipes], icon: "M12 6v12")
+
+    assert_includes html, 'stroke_width="1.5"'
+  end
+
+  test "bottom_nav_tab renders label in span" do
+    html = bottom_nav_tab("Plans", "/plans", controller_match: %w[other], icon: "M6 3v2")
+
+    assert_includes html, "<span"
+    assert_includes html, "Plans"
+  end
+
+  test "bottom_nav_tab has minimum tap target height" do
+    html = bottom_nav_tab("Dashboard", "/", controller_match: %w[dashboards], icon: "M2.25 12l8.954")
+
+    assert_includes html, "min-h-[48px]"
   end
 end

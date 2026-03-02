@@ -33,14 +33,18 @@
     <% end %>
     <%= render "shared/flash" %>
 
-    <main class="container mx-auto mt-8 px-5 flex">
+    <main class="container mx-auto mt-8 px-5 pb-20 md:pb-0 flex">
       <%= yield %>
     </main>
+
+    <% if Current.account %>
+      <%= render "shared/bottom_nav" %>
+    <% end %>
 
     <%# Offline indicator banner %>
     <div data-controller="offline-indicator">
       <div data-offline-indicator-target="banner"
-           class="fixed bottom-0 inset-x-0 z-50 translate-y-full opacity-0 transition-all duration-300 ease-in-out">
+           class="fixed bottom-16 md:bottom-0 inset-x-0 z-50 translate-y-full opacity-0 transition-all duration-300 ease-in-out">
         <div class="bg-warm-800 text-white text-center py-2.5 px-4 text-sm font-medium shadow-lg">
           <span class="inline-flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

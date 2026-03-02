@@ -15,30 +15,21 @@ module NavigationHelper
     end
   end
 
-  def mobile_drawer_link(name, path, controller_match:, icon: nil)
+  def bottom_nav_tab(name, path, controller_match:, icon:)
     active = controller_match.include?(controller_name)
+    color = active ? "text-primary-600" : "text-warm-400"
 
-    base = "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-    css = if active
-      "#{base} bg-white/15 text-white"
-    else
-      "#{base} text-primary-200 hover:bg-white/10 hover:text-white"
-    end
+    link_to path, class: "flex flex-col items-center justify-center min-h-[48px] px-1 #{color} transition-colors duration-150" do
+      svg = tag.svg(
+        class: "w-5 h-5",
+        fill: "none",
+        viewBox: "0 0 24 24",
+        stroke_width: active ? "2" : "1.5",
+        stroke: "currentColor",
+        aria: { hidden: true }
+      ) { tag.path(stroke_linecap: "round", stroke_linejoin: "round", d: icon) }
 
-    link_to path, class: css do
-      parts = []
-      if icon
-        parts << tag.svg(
-          class: "w-5 h-5",
-          fill: "none",
-          viewBox: "0 0 24 24",
-          stroke_width: "1.5",
-          stroke: "currentColor",
-          aria: { hidden: true }
-        ) { tag.path(stroke_linecap: "round", stroke_linejoin: "round", d: icon) }
-      end
-      parts << name
-      safe_join(parts)
+      safe_join([ svg, tag.span(name, class: "text-[10px] mt-0.5 font-medium") ])
     end
   end
 end
