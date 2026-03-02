@@ -2,6 +2,10 @@ Rails.application.routes.draw do
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # PWA
+  get "service-worker" => "pwa#service_worker", as: :pwa_service_worker
+  get "manifest" => "pwa#manifest", as: :pwa_manifest
+
   # =============================================================================
   # Public Authentication Routes (no account scope)
   # =============================================================================
