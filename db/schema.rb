@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_27_204559) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_02_025531) do
   create_table "access_tokens", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at"
@@ -100,6 +100,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_204559) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "ai_request_metrics", id: :string, force: :cascade do |t|
+    t.string "account_id"
+    t.integer "cache_creation_input_tokens", default: 0
+    t.boolean "cache_hit", default: false
+    t.integer "cache_read_input_tokens", default: 0
+    t.datetime "created_at", null: false
+    t.float "duration_ms"
+    t.string "error_class"
+    t.string "error_message"
+    t.string "feature", null: false
+    t.integer "input_tokens", default: 0
+    t.string "method_name", null: false
+    t.string "model", null: false
+    t.integer "output_tokens", default: 0
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "feature", "created_at"], name: "idx_ai_metrics_account_feature_time"
+    t.index ["account_id"], name: "index_ai_request_metrics_on_account_id"
+    t.index ["cache_hit"], name: "index_ai_request_metrics_on_cache_hit"
+    t.index ["created_at"], name: "index_ai_request_metrics_on_created_at"
+    t.index ["feature"], name: "index_ai_request_metrics_on_feature"
   end
 
   create_table "ai_task_statuses", id: :string, force: :cascade do |t|
@@ -394,6 +416,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_204559) do
   add_foreign_key "account_join_codes", "accounts"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "ai_request_metrics", "accounts"
   add_foreign_key "ai_task_statuses", "accounts"
   add_foreign_key "dietary_profiles", "accounts"
   add_foreign_key "dietary_profiles", "users"

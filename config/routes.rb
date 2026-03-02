@@ -93,6 +93,9 @@ Rails.application.routes.draw do
     # User settings
     resource :settings, only: %i[show update]
 
+    # Admin: AI metrics dashboard
+    resources :ai_metrics, only: :index
+
     # =============================================================================
     # API v1 Routes
     # =============================================================================

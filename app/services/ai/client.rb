@@ -11,9 +11,12 @@ module Ai
     MAX_RETRIES = 3
     RETRY_DELAYS = [ 1, 2, 4 ].freeze
 
+    attr_reader :model_name
+
     def initialize(api_key: nil, model: nil)
       @api_key = api_key || Rails.application.credentials.dig(:ai, :anthropic, :api_key)
       @model = model || Ai.default_model
+      @model_name = @model
 
       raise AuthenticationError, "Anthropic API key is not configured" if @api_key.blank?
     end
@@ -23,10 +26,13 @@ module Ai
     # @param messages [Array<Hash>] Conversation messages, e.g. [{role: "user", content: "Hello"}]
     # @param system [String, nil] Optional system prompt
     # @param max_tokens [Integer] Maximum tokens to generate
+    # @param feature [String, nil] Feature name for instrumentation
     # @return [String] The assistant's text response
-    def chat(messages:, system: nil, max_tokens: 1024)
+    def chat(messages:, system: nil, max_tokens: 1024, feature: nil)
       params = build_params(messages:, system:, max_tokens:)
-      response = with_retries { anthropic_client.messages.create(**params) }
+      response = instrument(:chat, feature:) do
+        with_retries { anthropic_client.messages.create(**params) }
+      end
       extract_text(response)
     end
 
@@ -36,13 +42,16 @@ module Ai
     # @param tools [Array<Hash>] Tool definitions with name, description, input_schema
     # @param system [String, nil] Optional system prompt
     # @param max_tokens [Integer] Maximum tokens to generate
+    # @param feature [String, nil] Feature name for instrumentation
     # @return [Hash] Parsed tool input from the model's tool_use response
-    def chat_with_tools(messages:, tools:, system: nil, max_tokens: 4096)
+    def chat_with_tools(messages:, tools:, system: nil, max_tokens: 4096, feature: nil)
       params = build_params(messages:, system:, max_tokens:)
       params[:tools] = tools
       params[:tool_choice] = { type: "any" }
 
-      response = with_retries { anthropic_client.messages.create(**params) }
+      response = instrument(:chat_with_tools, feature:) do
+        with_retries { anthropic_client.messages.create(**params) }
+      end
       extract_tool_use(response)
     end
 
@@ -51,9 +60,10 @@ module Ai
     # @param messages [Array<Hash>] Messages with image content blocks
     # @param system [String, nil] Optional system prompt
     # @param max_tokens [Integer] Maximum tokens to generate
+    # @param feature [String, nil] Feature name for instrumentation
     # @return [String] The assistant's text response
-    def vision(messages:, system: nil, max_tokens: 1024)
-      chat(messages:, system:, max_tokens:)
+    def vision(messages:, system: nil, max_tokens: 1024, feature: nil)
+      chat(messages:, system:, max_tokens:, feature:)
     end
 
     private
@@ -70,6 +80,44 @@ module Ai
       }
       params[:system] = system if system.present?
       params
+    end
+
+    def instrument(method_name, feature: nil)
+      start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      error = nil
+
+      begin
+        response = yield
+      rescue => e
+        error = e
+        raise
+      ensure
+        duration_ms = (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000
+        usage = extract_usage(response) if response
+
+        ActiveSupport::Notifications.instrument("request.ai_client", {
+          model: @model,
+          method_name: method_name.to_s,
+          feature: feature,
+          duration_ms: duration_ms.round(1),
+          usage: usage || {},
+          error: error
+        })
+      end
+
+      response
+    end
+
+    def extract_usage(response)
+      usage = response.try(:usage)
+      return {} unless usage
+
+      {
+        input_tokens: usage.try(:input_tokens) || 0,
+        output_tokens: usage.try(:output_tokens) || 0,
+        cache_creation_input_tokens: usage.try(:cache_creation_input_tokens) || 0,
+        cache_read_input_tokens: usage.try(:cache_read_input_tokens) || 0
+      }
     end
 
     def with_retries(&block)

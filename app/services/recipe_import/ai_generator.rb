@@ -17,7 +17,8 @@ module RecipeImport
         messages: [ { role: "user", content: user_prompt } ],
         tools: [ RECIPE_TOOL ],
         system: system_prompt,
-        max_tokens: 4096
+        max_tokens: 4096,
+        feature: "recipe_quick_entry"
       )
 
       normalize(result[:input])

@@ -1,0 +1,61 @@
+cache_hit_metric:
+  id: ai_metric_cache_hit
+  account_id: acct_test_one
+  feature: meal_plan_generation
+  model: claude-haiku-4-5-20251001
+  method_name: chat_with_tools
+  input_tokens: 500
+  output_tokens: 200
+  cache_creation_input_tokens: 0
+  cache_read_input_tokens: 1500
+  duration_ms: 1200.5
+  cache_hit: true
+  created_at: <%= 1.hour.ago.iso8601 %>
+  updated_at: <%= 1.hour.ago.iso8601 %>
+
+cache_miss_metric:
+  id: ai_metric_cache_miss
+  account_id: acct_test_one
+  feature: meal_plan_generation
+  model: claude-haiku-4-5-20251001
+  method_name: chat_with_tools
+  input_tokens: 2000
+  output_tokens: 300
+  cache_creation_input_tokens: 1500
+  cache_read_input_tokens: 0
+  duration_ms: 2500.0
+  cache_hit: false
+  created_at: <%= 2.hours.ago.iso8601 %>
+  updated_at: <%= 2.hours.ago.iso8601 %>
+
+recipe_import_metric:
+  id: ai_metric_recipe_import
+  account_id: acct_test_one
+  feature: recipe_import
+  model: claude-sonnet-4-20250514
+  method_name: chat_with_tools
+  input_tokens: 3000
+  output_tokens: 500
+  cache_creation_input_tokens: 0
+  cache_read_input_tokens: 0
+  duration_ms: 3000.0
+  cache_hit: false
+  created_at: <%= 3.hours.ago.iso8601 %>
+  updated_at: <%= 3.hours.ago.iso8601 %>
+
+failed_metric:
+  id: ai_metric_failed
+  account_id: acct_test_one
+  feature: meal_plan_generation
+  model: claude-haiku-4-5-20251001
+  method_name: chat_with_tools
+  input_tokens: 0
+  output_tokens: 0
+  cache_creation_input_tokens: 0
+  cache_read_input_tokens: 0
+  duration_ms: 500.0
+  cache_hit: false
+  error_class: Ai::Client::RateLimitError
+  error_message: Rate limit exceeded
+  created_at: <%= 4.hours.ago.iso8601 %>
+  updated_at: <%= 4.hours.ago.iso8601 %>

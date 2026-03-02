@@ -54,7 +54,8 @@ module RecipeImport
         messages: [ { role: "user", content: "Extract the recipe from this page:\n\n#{truncated}" } ],
         tools: [ RECIPE_TOOL ],
         system: SYSTEM_PROMPT,
-        max_tokens: 4096
+        max_tokens: 4096,
+        feature: "recipe_import"
       )
 
       normalize(result[:input])

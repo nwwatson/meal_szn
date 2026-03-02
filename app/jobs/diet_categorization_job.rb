@@ -61,7 +61,7 @@ class DietCategorizationJob < AiBaseJob
                     "1.0 = perfect fit, 0.0 = completely incompatible. " \
                     "Be conservative — only score above 0.7 if the recipe clearly fits the diet."
 
-    result = client.chat_with_tools(messages: messages, tools: tools, system: system_prompt)
+    result = client.chat_with_tools(messages: messages, tools: tools, system: system_prompt, feature: "diet_categorization")
     normalize_ai_scores(result[:input])
   end
 

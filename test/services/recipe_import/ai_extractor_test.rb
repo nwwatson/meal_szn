@@ -11,7 +11,7 @@ class RecipeImport::AiExtractorTest < ActiveSupport::TestCase
       @tool_input = tool_input
     end
 
-    def chat_with_tools(messages:, tools:, system: nil, max_tokens: 4096)
+    def chat_with_tools(messages:, tools:, system: nil, max_tokens: 4096, feature: nil)
       @last_call = { messages: messages, tools: tools, system: system, max_tokens: max_tokens }
       { name: "extract_recipe", input: @tool_input }
     end

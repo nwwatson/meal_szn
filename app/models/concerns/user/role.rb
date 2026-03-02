@@ -7,10 +7,11 @@ module User::Role
     scope :owners, -> { active.where(role: :owner) }
     scope :admins, -> { active.where(role: [ :owner, :admin ]) }
     scope :members, -> { active.where(role: :member) }
-  end
 
-  def admin?
-    owner? || read_attribute(:role) == "admin"
+    # Override the enum-generated admin? to include owners
+    define_method(:admin?) do
+      owner? || read_attribute(:role) == "admin"
+    end
   end
 
   def can_change?(other)

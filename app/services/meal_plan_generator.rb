@@ -138,7 +138,8 @@ class MealPlanGenerator
       messages: [ { role: "user", content: user_message } ],
       tools: [ meal_plan_tool_definition ],
       system: system_prompt,
-      max_tokens: 4096
+      max_tokens: 4096,
+      feature: "meal_plan_generation"
     )
 
     unless result[:name] == "assign_meals"
