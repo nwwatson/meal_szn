@@ -15,7 +15,7 @@ class Ingredient < ApplicationRecord
     end
   end
 
-  belongs_to :recipe
+  belongs_to :recipe, touch: true
   belongs_to :nutrition_item, optional: true
 
   validates :name, presence: true

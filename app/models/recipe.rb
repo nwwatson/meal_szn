@@ -129,16 +129,18 @@ class Recipe < ApplicationRecord
   end
 
   def to_meal_planning_response
-    {
-      id: id,
-      title: title,
-      category: category,
-      servings: servings,
-      prep_time: prep_time,
-      cook_time: cook_time,
-      nutrition_per_serving: nutrition_data&.to_meal_planning_response,
-      tags: tags.pluck(:name)
-    }
+    Rails.cache.fetch("#{cache_key_with_version}/meal_planning_response") do
+      {
+        id: id,
+        title: title,
+        category: category,
+        servings: servings,
+        prep_time: prep_time,
+        cook_time: cook_time,
+        nutrition_per_serving: nutrition_data&.to_meal_planning_response,
+        tags: tags.pluck(:name)
+      }
+    end
   end
 
   private

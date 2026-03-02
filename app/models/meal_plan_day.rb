@@ -1,7 +1,7 @@
 class MealPlanDay < ApplicationRecord
   include Identifiable
 
-  belongs_to :meal_plan
+  belongs_to :meal_plan, touch: true
   has_many :meals, class_name: "MealPlanMeal", dependent: :destroy
 
   validates :date, presence: true, uniqueness: { scope: :meal_plan_id }

@@ -12,19 +12,29 @@ module Usda
       @api_key = api_key || Rails.application.credentials.usda_api_key
     end
 
-    def search(query, page_size: 10)
-      params = {
-        query: query,
-        dataType: "SR Legacy,Foundation",
-        pageSize: page_size,
-        api_key: @api_key
-      }
+    CACHE_TTL = 24.hours
 
-      get("/fdc/v1/foods/search", params)
+    def search(query, page_size: 10)
+      cache_key = "usda:search:#{Digest::SHA256.hexdigest("#{query}:#{page_size}")}"
+
+      Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
+        params = {
+          query: query,
+          dataType: "SR Legacy,Foundation",
+          pageSize: page_size,
+          api_key: @api_key
+        }
+
+        get("/fdc/v1/foods/search", params)
+      end
     end
 
     def food(fdc_id)
-      get("/fdc/v1/food/#{fdc_id}", api_key: @api_key)
+      cache_key = "usda:food:#{fdc_id}"
+
+      Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
+        get("/fdc/v1/food/#{fdc_id}", api_key: @api_key)
+      end
     end
 
     private
