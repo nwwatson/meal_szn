@@ -14,7 +14,8 @@
 <% end %>
 
 <% if @access_tokens.any? %>
-  <div class="bg-white shadow rounded-lg overflow-hidden">
+  <%# Desktop table %>
+  <div class="hidden sm:block bg-white shadow rounded-lg overflow-hidden">
     <table class="min-w-full divide-y divide-warm-200">
       <thead class="bg-warm-50">
         <tr>
@@ -57,6 +58,32 @@
       </tbody>
     </table>
   </div>
+
+  <%# Mobile card layout %>
+  <div class="sm:hidden space-y-3">
+    <% @access_tokens.each do |token| %>
+      <div class="bg-white shadow rounded-lg p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-warm-900"><%= token.name || "Unnamed token" %></p>
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= token.write? ? 'bg-orange-100 text-orange-800' : 'bg-accent-100 text-accent-800' %>">
+                <%= token.permission %>
+              </span>
+              <span class="text-xs text-warm-500">
+                Expires: <% if token.expires_at %><%= token.expires_at.strftime("%b %d, %Y") %><% else %>Never<% end %>
+              </span>
+            </div>
+            <p class="text-xs text-warm-400 mt-1">Created <%= token.created_at.strftime("%b %d, %Y") %></p>
+          </div>
+          <%= button_to "Revoke", identity_access_token_path(token),
+              method: :delete,
+              class: "text-red-600 hover:text-red-900 text-sm font-medium min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0",
+              data: { turbo_confirm: "Are you sure you want to revoke this token?" } %>
+        </div>
+      </div>
+    <% end %>
+  </div>
 <% else %>
   <div class="text-center py-12 bg-warm-50 rounded-lg">
     <p class="text-warm-500 mb-4">No access tokens yet</p>
@@ -66,19 +93,19 @@
 
 <div class="mt-10">
   <h3 class="text-xl font-display font-bold text-warm-900 mb-4">Claude Desktop Integration</h3>
-  <div class="bg-white shadow rounded-lg p-6">
+  <div class="bg-white shadow rounded-lg p-4 sm:p-6">
     <p class="text-sm text-warm-600 mb-4">
       Connect MealSzn to Claude Desktop to manage your recipes, meal plans, and shopping lists through conversation.
       Create a <strong>write</strong> permission token above, then add this to your Claude Desktop config:
     </p>
 
     <p class="text-xs text-warm-500 mb-2">
-      <strong>macOS:</strong> <code class="bg-warm-100 px-1 rounded">~/Library/Application Support/Claude/claude_desktop_config.json</code><br>
-      <strong>Windows:</strong> <code class="bg-warm-100 px-1 rounded">%APPDATA%\Claude\claude_desktop_config.json</code>
+      <strong>macOS:</strong> <code class="bg-warm-100 px-1 rounded text-xs break-all">~/Library/Application Support/Claude/claude_desktop_config.json</code><br>
+      <strong>Windows:</strong> <code class="bg-warm-100 px-1 rounded text-xs break-all">%APPDATA%\Claude\claude_desktop_config.json</code>
     </p>
 
     <div class="relative">
-      <pre class="p-4 bg-warm-900 text-warm-100 rounded-lg text-sm font-mono overflow-x-auto"><code>{
+      <pre class="p-3 sm:p-4 bg-warm-900 text-warm-100 rounded-lg text-xs sm:text-sm font-mono overflow-x-auto"><code>{
   "mcpServers": {
     "meal-szn": {
       "url": "<%= request.base_url %>/mcp/sse",
