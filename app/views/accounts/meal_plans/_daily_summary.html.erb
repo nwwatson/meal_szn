@@ -1,21 +1,22 @@
 <%# locals: (day:, daily_calories_target:) %>
 <%
-  total_cal = day.total_calories.round
-  total_fat = day.total_fat.round
-  total_protein = day.total_protein.round
-  total_carbs = day.total_net_carbs.round
+  # Sum per-serving nutrition (1 serving per meal, ignoring meal.servings)
+  total_cal = day.meals.sum { |m| m.recipe.nutrition_data&.calories.to_i }
+  total_fat = day.meals.sum { |m| m.recipe.nutrition_data&.fat.to_f }.round(1)
+  total_protein = day.meals.sum { |m| m.recipe.nutrition_data&.protein.to_f }.round(1)
+  total_carbs = day.meals.sum { |m| m.recipe.nutrition_data&.net_carbs.to_f }.round(1)
   status = calorie_status(total_cal, daily_calories_target)
 %>
-<div class="p-2 text-center">
+<div class="flex flex-wrap items-center gap-3 text-sm">
   <% if status %>
-    <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold <%= status[:bg] %> <%= status[:text] %> <%= status[:border] %> border">
+    <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold <%= status[:bg] %> <%= status[:text] %> <%= status[:border] %> border">
       <%= total_cal %> / <%= daily_calories_target %> cal
       <span class="<%= status[:text] %>"><%= status[:label] %></span>
     </div>
   <% else %>
-    <span class="text-xs font-semibold text-warm-700 tabular-nums"><%= total_cal %> cal</span>
+    <span class="text-sm font-semibold text-warm-700 tabular-nums"><%= total_cal %> cal</span>
   <% end %>
-  <div class="flex justify-center gap-2 mt-1 text-[10px] text-warm-500 tabular-nums">
+  <div class="flex gap-3 text-xs text-warm-500 tabular-nums">
     <span>F:<%= total_fat %>g</span>
     <span>P:<%= total_protein %>g</span>
     <span>C:<%= total_carbs %>g</span>

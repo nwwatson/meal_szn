@@ -1,0 +1,133 @@
+<%# locals: (recipe:) %>
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <%= recipe_show_banner(recipe) %>
+
+  <% if recipe.images.any? %>
+    <div class="p-4 border-b border-warm-200 bg-warm-50">
+      <div class="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+        <% recipe.images.each do |img| %>
+          <div class="snap-start shrink-0">
+            <%= image_tag img.variant(:card), class: "h-24 w-32 rounded-lg object-cover shadow-sm", loading: "lazy" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="p-6 border-b border-warm-200">
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-display font-bold text-warm-900"><%= recipe.title %></h1>
+        <div class="flex items-center gap-3 mt-2">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+            <%= recipe.category.titleize %>
+          </span>
+          <% if recipe.total_time > 0 %>
+            <span class="text-sm text-warm-500"><%= recipe.total_time %> min total</span>
+          <% end %>
+          <% if recipe.servings %>
+            <span class="text-sm text-warm-500"><%= recipe.servings %> servings</span>
+          <% end %>
+        </div>
+        <% if recipe.tags.any? %>
+          <div class="flex gap-1.5 mt-2 flex-wrap">
+            <% recipe.tags.each do |tag| %>
+              <%= link_to tag.name, recipes_path(tags: [tag.id]),
+                    class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 hover:bg-primary-100" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+      <div class="flex gap-2">
+        <% if @meal_plans&.any? %>
+          <button type="button" data-action="add-to-meal-plan#open" class="bg-accent-50 text-accent-600 px-3 py-1.5 rounded-lg hover:bg-accent-100 text-sm font-medium">Add to Meal Plan</button>
+        <% end %>
+        <%= link_to "Edit", edit_recipe_path(recipe), class: "bg-warm-100 text-warm-700 px-3 py-1.5 rounded-lg hover:bg-warm-200 text-sm font-medium" %>
+        <%= button_to "Delete", recipe_path(recipe), method: :delete, class: "bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 text-sm font-medium", data: { turbo_confirm: "Are you sure?" } %>
+      </div>
+    </div>
+    <% if recipe.description.present? %>
+      <p class="text-warm-600 mt-3"><%= recipe.description %></p>
+    <% end %>
+  </div>
+
+  <% if recipe.nutrition_data %>
+    <div class="p-6 border-b border-warm-200 bg-warm-50">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-warm-500 uppercase tracking-wider">Nutrition per Serving</h2>
+        <% if (badges = diet_score_badges(recipe.nutrition_data) || diet_compatibility_badge(recipe.nutrition_data)) %>
+          <div class="flex gap-1.5"><%= badges %></div>
+        <% end %>
+      </div>
+      <div class="flex items-start gap-8">
+        <% nd = recipe.nutrition_data %>
+        <% if nd.fat.present? && nd.protein.present? && nd.net_carbs.present? %>
+          <%= macro_donut_chart(fat_g: nd.fat, protein_g: nd.protein, carbs_g: nd.net_carbs) %>
+        <% end %>
+        <div class="flex-1 grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.calories %></span><br><span class="text-xs text-warm-500">Calories</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.fat %>g</span><br><span class="text-xs text-warm-500">Fat</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.protein %>g</span><br><span class="text-xs text-warm-500">Protein</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.net_carbs %>g</span><br><span class="text-xs text-warm-500">Net Carbs</span></div>
+          <div><span class="text-2xl font-display font-bold text-warm-900"><%= nd.fiber %>g</span><br><span class="text-xs text-warm-500">Fiber</span></div>
+        </div>
+      </div>
+    </div>
+
+    <% if (breakdown = diet_score_breakdown(recipe.nutrition_data)) %>
+      <div class="p-6 border-b border-warm-200">
+        <h2 class="text-sm font-semibold text-warm-500 uppercase tracking-wider mb-4">Diet Compatibility</h2>
+        <div class="space-y-3">
+          <%= breakdown %>
+        </div>
+        <p class="text-xs text-warm-400 mt-4">Scores are based on how closely this recipe's macros match each diet's target ranges.</p>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% if recipe.ingredients.any? %>
+    <div class="p-6 border-b border-warm-200">
+      <h2 class="text-lg font-semibold text-warm-900 mb-3">Ingredients</h2>
+      <ul class="space-y-2">
+        <% recipe.ingredients.each do |ingredient| %>
+          <li class="flex items-center text-warm-700">
+            <span class="w-2 h-2 bg-primary-400 rounded-full mr-3 flex-shrink-0"></span>
+            <%= ingredient.display_text %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if recipe.instructions.any? %>
+    <div class="p-6 border-b border-warm-200">
+      <h2 class="text-lg font-semibold text-warm-900 mb-3">Instructions</h2>
+      <ol class="space-y-4">
+        <% recipe.instructions.each do |instruction| %>
+          <li class="flex">
+            <span class="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-semibold text-sm mr-3">
+              <%= instruction.step_number %>
+            </span>
+            <p class="text-warm-700 pt-1"><%= instruction.instruction %></p>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  <% end %>
+
+  <% if recipe.tips.any? %>
+    <div class="p-6">
+      <h2 class="text-lg font-semibold text-warm-900 mb-3">Tips</h2>
+      <ul class="space-y-2">
+        <% recipe.tips.each do |tip| %>
+          <li class="flex items-start text-warm-600 text-sm">
+            <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707z"/>
+            </svg>
+            <%= tip.tip %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>

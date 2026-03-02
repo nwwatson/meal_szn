@@ -160,23 +160,13 @@ class Accounts::MealPlansControllerTest < ActionDispatch::IntegrationTest
     assert_equal @meal_plan.participants.count, new_plan.participants.count
   end
 
-  # === Calendar view tests ===
+  # === Vertical day layout tests ===
 
-  test "show renders desktop calendar grid with drag controller" do
+  test "show renders vertical day layout with meal-swap controllers" do
     sign_in_as(@session)
     get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
     assert_response :success
-    assert_select "[data-controller='calendar-drag']"
-    assert_select "[data-drop-zone]"
-  end
-
-  test "show renders mobile swipeable view" do
-    sign_in_as(@session)
-    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
-    assert_response :success
-    assert_select "[data-controller='calendar-swipe']"
-    assert_select "[data-calendar-swipe-target='dayPanel']"
-    assert_select "[data-calendar-swipe-target='dayTab']"
+    assert_select "[data-controller='meal-swap']"
   end
 
   test "show renders daily summary with macro totals" do
@@ -186,11 +176,11 @@ class Accounts::MealPlansControllerTest < ActionDispatch::IntegrationTest
     assert_select ".tabular-nums"
   end
 
-  test "show renders draggable recipe cards" do
+  test "show renders recipe links to nested meal plan recipe path" do
     sign_in_as(@session)
     get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
     assert_response :success
-    assert_select "[draggable='true'][data-meal-id]"
+    assert_select "a[href*='meal_plans/#{@meal_plan.id}/recipes/']"
   end
 
   # === AI Generation tests ===

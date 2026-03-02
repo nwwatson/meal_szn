@@ -7,14 +7,14 @@
   meal_types = %w[breakfast lunch dinner snack]
 %>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="mb-6">
     <%= link_to "&larr; Back to Meal Plans".html_safe, meal_plans_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
   </div>
 
   <div class="bg-white rounded-lg shadow mb-6">
     <div class="p-6 border-b border-warm-200">
-      <div class="flex justify-between items-start">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <h1 class="text-3xl font-display font-bold text-warm-900"><%= @meal_plan.name || "Untitled Plan" %></h1>
           <p class="text-warm-500 mt-1">
@@ -98,120 +98,69 @@
   <% end %>
 
   <% if current_week.any? %>
-    <div class="hidden lg:block" data-controller="calendar-drag" data-calendar-drag-base-url-value="<%= meal_plan_meals_path(@meal_plan) %>">
-      <div class="bg-white rounded-xl shadow-sm border border-warm-200 overflow-hidden">
-        <div class="grid border-b border-warm-200" style="grid-template-columns: 5rem repeat(<%= current_week.size %>, minmax(0, 1fr))">
-          <div class="p-3 bg-warm-50 border-r border-warm-200"></div>
-          <% current_week.each do |day| %>
-            <div class="p-3 text-center border-r border-warm-100 last:border-r-0 <%= day.date == Date.current ? 'bg-primary-50' : 'bg-warm-50' %> group/day">
-              <p class="text-xs font-semibold uppercase tracking-wider <%= day.date == Date.current ? 'text-primary-700' : 'text-warm-500' %>"><%= day.date.strftime("%a") %></p>
-              <p class="text-lg font-display font-bold <%= day.date == Date.current ? 'text-primary-800' : 'text-warm-800' %>"><%= day.date.day %></p>
-              <% if day.meals.any? %>
-                <%= button_to regenerate_day_meal_plan_path(@meal_plan, day_number: day.day_number), method: :post, class: "opacity-0 group-hover/day:opacity-100 transition-opacity mt-1 text-[10px] text-primary-500 hover:text-primary-700 font-medium", data: { turbo_confirm: "Regenerate all meals for #{day.date.strftime('%A, %b %-d')}? This will replace all current meals with AI-generated ones." } do %>
-                  <span class="flex items-center justify-center gap-0.5">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    Regen
-                  </span>
-                <% end %>
+    <div class="space-y-6">
+      <% current_week.each do |day| %>
+        <div class="bg-white rounded-xl shadow-sm border border-warm-200 overflow-hidden">
+          <%# Day header %>
+          <div class="px-4 py-3 border-b border-warm-200 flex items-center justify-between <%= day.date == Date.current ? 'bg-primary-50' : 'bg-warm-50' %>">
+            <h3 class="text-lg font-display font-bold <%= day.date == Date.current ? 'text-primary-800' : 'text-warm-800' %>">
+              <%= day.date.strftime("%A, %B %-d") %>
+            </h3>
+            <% if day.meals.any? %>
+              <%= button_to regenerate_day_meal_plan_path(@meal_plan, day_number: day.day_number), method: :post, class: "text-xs text-primary-500 hover:text-primary-700 font-medium flex items-center gap-1", data: { turbo_confirm: "Regenerate all meals for #{day.date.strftime('%A, %b %-d')}? This will replace all current meals with AI-generated ones." } do %>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Regenerate
               <% end %>
-            </div>
-          <% end %>
-        </div>
-
-        <% meal_types.each do |meal_type| %>
-          <div class="grid border-b border-warm-100 last:border-b-0" style="grid-template-columns: 5rem repeat(<%= current_week.size %>, minmax(0, 1fr))">
-            <div class="p-2 bg-warm-50 border-r border-warm-200 flex items-start justify-center pt-3">
-              <span class="text-[10px] font-bold uppercase tracking-widest text-warm-500 [writing-mode:vertical-lr] rotate-180"><%= meal_type.titleize %></span>
-            </div>
-            <% current_week.each do |day| %>
-              <% day_meals = day.meals.select { |m| m.meal_type == meal_type } %>
-              <div class="border-r border-warm-100 last:border-r-0 <%= day.date == Date.current ? 'bg-primary-50/30' : '' %>">
-                <%= render "calendar_cell", day: day, meal_type: meal_type, meals: day_meals, meal_plan: @meal_plan %>
-              </div>
             <% end %>
           </div>
-        <% end %>
 
-        <div class="grid border-t-2 border-warm-200 bg-warm-50" style="grid-template-columns: 5rem repeat(<%= current_week.size %>, minmax(0, 1fr))">
-          <div class="p-2 border-r border-warm-200 flex items-center justify-center">
-            <span class="text-[10px] font-bold uppercase tracking-widest text-warm-500">Total</span>
-          </div>
-          <% current_week.each do |day| %>
-            <div class="border-r border-warm-100 last:border-r-0">
-              <%= render "daily_summary", day: day, daily_calories_target: @meal_plan.daily_calories_target %>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-
-    <div class="lg:hidden" data-controller="calendar-swipe" data-calendar-swipe-current-index-value="0">
-      <div class="flex gap-1 mb-4 overflow-x-auto pb-2 -mx-1 px-1">
-        <% current_week.each_with_index do |day, i| %>
-          <button type="button" data-action="calendar-swipe#selectDay" data-day-index="<%= i %>" data-calendar-swipe-target="dayTab" class="shrink-0 px-4 py-3 min-w-[44px] min-h-[44px] rounded-lg text-sm font-medium transition-colors <%= i == 0 ? 'bg-primary-600 text-white' : 'bg-warm-100 text-warm-600' %>">
-            <span class="block text-[10px] uppercase"><%= day.date.strftime("%a") %></span>
-            <span class="block text-base font-bold"><%= day.date.day %></span>
-          </button>
-        <% end %>
-      </div>
-
-      <div data-action="touchstart->calendar-swipe#touchStart touchend->calendar-swipe#touchEnd">
-        <% current_week.each_with_index do |day, i| %>
-          <div data-calendar-swipe-target="dayPanel" class="<%= i == 0 ? '' : 'hidden' %>">
-            <div class="bg-white rounded-xl shadow-sm border border-warm-200 overflow-hidden">
-              <div class="p-4 border-b border-warm-200 <%= day.date == Date.current ? 'bg-primary-50' : 'bg-warm-50' %> flex items-center justify-between">
-                <h3 class="text-lg font-display font-bold <%= day.date == Date.current ? 'text-primary-800' : 'text-warm-800' %>"><%= day.date.strftime("%A, %b %-d") %></h3>
-                <% if day.meals.any? %>
-                  <%= button_to regenerate_day_meal_plan_path(@meal_plan, day_number: day.day_number), method: :post, class: "text-xs text-primary-500 hover:text-primary-700 font-medium flex items-center gap-1", data: { turbo_confirm: "Regenerate all meals for #{day.date.strftime('%A, %b %-d')}? This will replace all current meals with AI-generated ones." } do %>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    Regenerate
-                  <% end %>
-                <% end %>
-              </div>
-
-              <% meal_types.each do |meal_type| %>
-                <% day_meals = day.meals.select { |m| m.meal_type == meal_type } %>
-                <div class="px-4 py-3 border-b border-warm-100 last:border-b-0">
-                  <h4 class="text-xs font-bold uppercase tracking-wider text-warm-500 mb-2"><%= meal_type.titleize %></h4>
-                  <% if day_meals.any? %>
-                    <% day_meals.each do |meal| %>
-                      <div data-controller="meal-swap" data-meal-swap-url-value="<%= swap_meal_plan_meal_path(@meal_plan, meal) %>">
-                        <div class="flex items-center gap-3 py-1.5">
-                          <% if meal.recipe.image.attached? %>
-                            <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0">
-                              <%= image_tag meal.recipe.image.variant(:thumbnail), class: "w-full h-full object-cover", loading: "lazy", alt: meal.recipe.title %>
-                            </div>
-                          <% end %>
-                          <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold text-warm-900 truncate"><%= link_to meal.recipe.title, recipe_path(meal.recipe), class: "hover:text-primary-600" %></p>
-                            <div class="flex gap-2 text-xs text-warm-500">
-                              <span><%= meal.servings.to_f == meal.servings.to_i.to_f ? meal.servings.to_i : meal.servings %> serving<%= meal.servings == 1 ? '' : 's' %></span>
-                              <% if meal.recipe.nutrition_data %><span><%= meal.calories %> cal</span><% end %>
-                            </div>
-                          </div>
-                          <button type="button" data-action="meal-swap#open" class="text-primary-400 hover:text-primary-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Swap recipe">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-                          </button>
-                          <%= button_to meal_plan_meal_path(@meal_plan, meal), method: :delete, class: "text-red-400 hover:text-red-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center", data: { turbo_confirm: "Remove this meal?" } do %>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <%# Meal rows by type %>
+          <% meal_types.each do |meal_type| %>
+            <% day_meals = day.meals.select { |m| m.meal_type == meal_type } %>
+            <div class="px-4 py-3 border-b border-warm-100 last:border-b-0">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-warm-400 mb-2"><%= meal_type.titleize %></h4>
+              <% if day_meals.any? %>
+                <% day_meals.each do |meal| %>
+                  <div data-controller="meal-swap" data-meal-swap-url-value="<%= swap_meal_plan_meal_path(@meal_plan, meal) %>">
+                    <div class="flex items-center gap-3 py-1.5">
+                      <% if meal.recipe.image.attached? %>
+                        <div class="w-12 h-12 rounded-lg overflow-hidden shrink-0">
+                          <%= image_tag meal.recipe.image.variant(:thumbnail), class: "w-full h-full object-cover", loading: "lazy", alt: meal.recipe.title %>
+                        </div>
+                      <% end %>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-warm-900">
+                          <%= link_to meal.recipe.title, meal_plan_recipe_path(@meal_plan, meal.recipe), class: "hover:text-primary-600" %>
+                        </p>
+                        <div class="flex gap-2 text-xs text-warm-500">
+                          <span>1 serving</span>
+                          <% if meal.recipe.nutrition_data %>
+                            <span><%= meal.recipe.nutrition_data.calories %> cal</span>
                           <% end %>
                         </div>
-                        <div data-meal-swap-target="panel"></div>
                       </div>
-                    <% end %>
-                  <% else %>
-                    <p class="text-sm text-warm-300 italic">No meals</p>
-                  <% end %>
-                </div>
+                      <button type="button" data-action="meal-swap#open" class="text-primary-400 hover:text-primary-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Swap recipe">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                      </button>
+                      <%= button_to meal_plan_meal_path(@meal_plan, meal), method: :delete, class: "text-red-400 hover:text-red-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center", data: { turbo_confirm: "Remove this meal?" } do %>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                      <% end %>
+                    </div>
+                    <div data-meal-swap-target="panel"></div>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-sm text-warm-300 italic">No meals</p>
               <% end %>
-
-              <div class="p-4 bg-warm-50 border-t border-warm-200">
-                <%= render "daily_summary", day: day, daily_calories_target: @meal_plan.daily_calories_target %>
-              </div>
             </div>
+          <% end %>
+
+          <%# Daily totals %>
+          <div class="px-4 py-3 bg-warm-50 border-t border-warm-200">
+            <%= render "daily_summary", day: day, daily_calories_target: @meal_plan.daily_calories_target %>
           </div>
-        <% end %>
-      </div>
+        </div>
+      <% end %>
     </div>
   <% else %>
     <div class="bg-white rounded-lg shadow px-6 py-12 text-center">
