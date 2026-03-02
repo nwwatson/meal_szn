@@ -1,0 +1,43 @@
+<%# locals: (meal:, recipes:, meal_plan:) %>
+<div class="bg-white rounded-xl shadow-lg border border-warm-200 p-4 max-w-sm">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-sm font-display font-bold text-warm-900">Swap Recipe</h3>
+    <button type="button" data-action="meal-swap#close" class="text-warm-400 hover:text-warm-600">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <p class="text-xs text-warm-500 mb-3">
+    Current: <strong class="text-warm-700"><%= meal.recipe.title %></strong>
+    <% if meal.recipe.nutrition_data %>
+      (<%= meal.recipe.nutrition_data.calories %> cal)
+    <% end %>
+  </p>
+
+  <% if recipes.any? %>
+    <div class="space-y-1 max-h-64 overflow-y-auto">
+      <% recipes.each do |recipe| %>
+        <%= button_to swap_meal_plan_meal_path(meal_plan, meal, recipe_id: recipe.id),
+              method: :patch,
+              class: "w-full text-left p-2 rounded-lg hover:bg-primary-50 transition-colors group flex items-center gap-2" do %>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-warm-900 group-hover:text-primary-700 truncate"><%= recipe.title %></p>
+            <% if recipe.nutrition_data %>
+              <div class="flex gap-2 text-[10px] text-warm-500">
+                <span><%= recipe.nutrition_data.calories %> cal</span>
+                <span>F: <%= recipe.nutrition_data.fat.to_i %>g</span>
+                <span>P: <%= recipe.nutrition_data.protein.to_i %>g</span>
+                <span>C: <%= recipe.nutrition_data.net_carbs.to_i %>g</span>
+              </div>
+            <% end %>
+          </div>
+          <svg class="w-4 h-4 text-warm-300 group-hover:text-primary-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+          </svg>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-warm-400 italic py-4 text-center">No alternative recipes available for this category.</p>
+  <% end %>
+</div>

@@ -35,6 +35,30 @@ class Accounts::MealPlanMealsController < ApplicationController
     end
   end
 
+  def swap
+    @meal = find_meal(params[:id])
+    @recipes = Current.account.recipes
+      .includes(:nutrition_data)
+      .where(category: @meal.recipe.category)
+      .where.not(id: @meal.recipe_id)
+      .order(:title)
+      .limit(20)
+
+    render partial: "accounts/meal_plans/swap_panel", locals: {
+      meal: @meal, recipes: @recipes, meal_plan: @meal_plan
+    }
+  end
+
+  def perform_swap
+    @meal = find_meal(params[:id])
+    recipe = Current.account.recipes.find(params[:recipe_id])
+
+    @meal.update!(recipe: recipe)
+    recalculate_portions_for(@meal)
+
+    redirect_to meal_plan_path(@meal_plan), notice: "Meal swapped to #{recipe.title}."
+  end
+
   def destroy
     meal = find_meal(params[:id])
     meal.destroy
@@ -67,6 +91,19 @@ class Accounts::MealPlanMealsController < ApplicationController
       day_portions = calculator.suggest_portions_for_day(meal.meal_plan_day)
       servings = day_portions[meal.id] || 1.0
       participant.portions.create!(meal_plan_meal: meal, servings: servings)
+    end
+  end
+
+  def recalculate_portions_for(meal)
+    @meal_plan.participants.includes(:dietary_profile).each do |participant|
+      calculator = PortionCalculator.new(participant)
+      day_portions = calculator.suggest_portions_for_day(meal.meal_plan_day)
+      portion = participant.portions.find_by(meal_plan_meal: meal)
+      if portion
+        portion.update!(servings: day_portions[meal.id] || 1.0)
+      else
+        participant.portions.create!(meal_plan_meal: meal, servings: day_portions[meal.id] || 1.0)
+      end
     end
   end
 end

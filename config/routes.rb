@@ -69,6 +69,7 @@ Rails.application.routes.draw do
     resources :meal_plans do
       member do
         post :duplicate
+        post :regenerate_day
       end
       collection do
         post :start_generate
@@ -78,6 +79,8 @@ Rails.application.routes.draw do
       resources :meals, only: %i[create destroy], controller: "meal_plan_meals" do
         member do
           patch :move
+          get :swap
+          patch :swap, action: :perform_swap
         end
       end
       resources :participants, only: %i[create destroy], controller: "meal_plan_participants"

@@ -3,6 +3,7 @@
   <% if meals.any? %>
     <% meals.each do |meal| %>
       <div draggable="true" data-meal-id="<%= meal.id %>"
+           data-controller="meal-swap" data-meal-swap-url-value="<%= swap_meal_plan_meal_path(meal_plan, meal) %>"
            class="group bg-white rounded-lg border border-warm-200 p-1.5 mb-1 cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow">
         <div class="flex items-start gap-1.5">
           <% if meal.recipe.image.attached? %>
@@ -21,10 +22,16 @@
               <% end %>
             </div>
           </div>
-          <%= button_to meal_plan_meal_path(meal_plan, meal), method: :delete, class: "opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 shrink-0 transition-opacity", data: { turbo_confirm: "Remove this meal?" } do %>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          <% end %>
+          <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <button type="button" data-action="meal-swap#open" class="text-primary-400 hover:text-primary-600" title="Swap recipe">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+            </button>
+            <%= button_to meal_plan_meal_path(meal_plan, meal), method: :delete, class: "text-red-400 hover:text-red-600", data: { turbo_confirm: "Remove this meal?" } do %>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <% end %>
+          </div>
         </div>
+        <div data-meal-swap-target="panel" class="mt-1"></div>
       </div>
     <% end %>
   <% else %>

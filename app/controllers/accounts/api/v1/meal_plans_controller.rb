@@ -130,6 +130,7 @@ class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationCon
     end
 
     meal.update!(recipe: recipe)
+    recalculate_portions_for(meal)
 
     render json: { meal_plan: @meal_plan.reload.to_api_response }
   end
@@ -196,6 +197,17 @@ class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationCon
       next unless profile
 
       plan.participants.create!(dietary_profile: profile)
+    end
+  end
+
+  def recalculate_portions_for(meal)
+    @meal_plan.participants.includes(:dietary_profile).each do |participant|
+      calculator = PortionCalculator.new(participant)
+      day_portions = calculator.suggest_portions_for_day(meal.meal_plan_day)
+      portion = participant.portions.find_by(meal_plan_meal: meal)
+      if portion
+        portion.update!(servings: day_portions[meal.id] || 1.0)
+      end
     end
   end
 
