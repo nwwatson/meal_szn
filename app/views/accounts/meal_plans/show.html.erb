@@ -140,7 +140,7 @@
     <div class="lg:hidden" data-controller="calendar-swipe" data-calendar-swipe-current-index-value="0">
       <div class="flex gap-1 mb-4 overflow-x-auto pb-2 -mx-1 px-1">
         <% current_week.each_with_index do |day, i| %>
-          <button type="button" data-action="calendar-swipe#selectDay" data-day-index="<%= i %>" data-calendar-swipe-target="dayTab" class="shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors <%= i == 0 ? 'bg-primary-600 text-white' : 'bg-warm-100 text-warm-600' %>">
+          <button type="button" data-action="calendar-swipe#selectDay" data-day-index="<%= i %>" data-calendar-swipe-target="dayTab" class="shrink-0 px-4 py-3 min-w-[44px] min-h-[44px] rounded-lg text-sm font-medium transition-colors <%= i == 0 ? 'bg-primary-600 text-white' : 'bg-warm-100 text-warm-600' %>">
             <span class="block text-[10px] uppercase"><%= day.date.strftime("%a") %></span>
             <span class="block text-base font-bold"><%= day.date.day %></span>
           </button>
@@ -174,8 +174,8 @@
                             <% if meal.recipe.nutrition_data %><span><%= meal.calories %> cal</span><% end %>
                           </div>
                         </div>
-                        <%= button_to meal_plan_meal_path(@meal_plan, meal), method: :delete, class: "text-red-400 hover:text-red-600 shrink-0", data: { turbo_confirm: "Remove this meal?" } do %>
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <%= button_to meal_plan_meal_path(@meal_plan, meal), method: :delete, class: "text-red-400 hover:text-red-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center", data: { turbo_confirm: "Remove this meal?" } do %>
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         <% end %>
                       </div>
                     <% end %>

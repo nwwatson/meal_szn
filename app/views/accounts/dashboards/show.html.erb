@@ -281,12 +281,12 @@
       <%# === WEEKLY OVERVIEW STRIP === %>
       <div class="mb-8 fade-up">
         <h2 class="text-lg font-display font-bold text-warm-900 mb-3">This Week</h2>
-        <div class="grid grid-cols-7 gap-2">
+        <div class="flex gap-2 overflow-x-auto pb-2 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
           <% @current_meal_plan.days.sort_by(&:date).each do |day| %>
             <% is_today = day.date == Date.current %>
             <% has_meals = day.meals.any? %>
             <%= link_to meal_plan_path(@current_meal_plan, anchor: "day-#{day.day_number}"),
-                  class: "block rounded-xl p-3 text-center transition-all #{
+                  class: "shrink-0 w-[72px] sm:w-auto block rounded-xl p-3 text-center transition-all #{
                     if is_today
                       'bg-primary-600 text-white shadow-md ring-2 ring-primary-300'
                     elsif has_meals

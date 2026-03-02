@@ -2,7 +2,8 @@
 
 <h2 class="text-2xl font-display font-bold text-warm-900 mb-6">Active Sessions</h2>
 
-<div class="bg-white shadow rounded-lg overflow-hidden">
+<%# Desktop table %>
+<div class="hidden sm:block bg-white shadow rounded-lg overflow-hidden">
   <table class="min-w-full divide-y divide-warm-200">
     <thead class="bg-warm-50">
       <tr>
@@ -45,4 +46,36 @@
       <% end %>
     </tbody>
   </table>
+</div>
+
+<%# Mobile card layout %>
+<div class="sm:hidden space-y-3">
+  <% @sessions.each do |session| %>
+    <div class="bg-white shadow rounded-lg p-4 <%= session == @current_session ? 'ring-2 ring-primary-200 bg-primary-50' : '' %>">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <% if session == @current_session %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800 shrink-0">
+                Current
+              </span>
+            <% end %>
+          </div>
+          <p class="text-sm text-warm-900 truncate" title="<%= session.user_agent %>">
+            <%= session.user_agent.to_s.truncate(40) || "Unknown device" %>
+          </p>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-warm-500">
+            <span>IP: <%= session.ip_address || "Unknown" %></span>
+            <span><%= time_ago_in_words(session.updated_at) %> ago</span>
+          </div>
+        </div>
+        <% unless session == @current_session %>
+          <%= button_to "Terminate", identity_session_path(session),
+              method: :delete,
+              class: "text-red-600 hover:text-red-900 text-sm font-medium min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0",
+              data: { turbo_confirm: "Are you sure you want to terminate this session?" } %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 </div>
