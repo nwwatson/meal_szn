@@ -48,6 +48,7 @@ Rails.application.routes.draw do
       member do
         get :resolve_ingredients
         patch :apply_resolution
+        patch :rate
       end
       collection do
         get :search_usda

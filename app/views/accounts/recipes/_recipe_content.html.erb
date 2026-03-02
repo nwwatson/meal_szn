@@ -37,6 +37,9 @@
             <% end %>
           </div>
         <% end %>
+        <div class="mt-3">
+          <%= render "accounts/recipes/star_rating", recipe: recipe, interactive: true, size: "w-6 h-6" %>
+        </div>
       </div>
       <div class="flex gap-2">
         <% if @meal_plans&.any? %>

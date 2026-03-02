@@ -226,6 +226,7 @@ class Accounts::Api::V1::RecipesController < Accounts::Api::V1::ApplicationContr
       :servings,
       :prep_time,
       :cook_time,
+      :rating,
       ingredients_attributes: %i[id name quantity unit display_order _destroy],
       instructions_attributes: %i[id step_number instruction _destroy],
       nutrition_data_attributes: %i[

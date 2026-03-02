@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_02_025531) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_02_221956) do
   create_table "access_tokens", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at"
@@ -332,11 +332,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_025531) do
     t.datetime "created_at", null: false
     t.text "description"
     t.integer "prep_time"
+    t.integer "rating"
     t.integer "servings"
     t.string "source"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id", "category"], name: "index_recipes_on_account_id_and_category"
+    t.index ["account_id", "rating"], name: "index_recipes_on_account_id_and_rating"
     t.index ["account_id", "title"], name: "index_recipes_on_account_id_and_title"
     t.index ["account_id"], name: "index_recipes_on_account_id"
   end
