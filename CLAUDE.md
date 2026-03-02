@@ -153,10 +153,12 @@ Integrated via `fast-mcp` gem. Mounted at `/mcp` with HTTP/SSE transport. Allows
 - `status` enum: `pending`, `processing`, `completed`, `failed` (with validated transitions)
 - `result` JSON column for AI output, `error_message` for failures
 - `progress_percentage` (0–100) for incremental updates
-- Turbo Stream broadcasts on status changes to `[account, :ai_task_statuses]` stream
+- Turbo Stream broadcasts on status AND progress changes to `[account, :ai_task_statuses]` stream
 - Account-scoped with string UUID PK
 
 **Subclassing pattern:** Implement `#execute(**args)` returning a Hash. Call `update_progress(n)` for incremental updates. Error handling and status transitions are automatic.
+
+**Real-time progress UI:** Progress pages use `turbo_stream_from` to subscribe to broadcasts from `AiTaskStatus`. The `ai_progress_controller.js` Stimulus controller watches for status changes in the broadcast partial and redirects on completion/failure. Falls back to polling (via `fetch` every 2s) if WebSocket is unavailable. Reusable `shared/_ai_progress.html.erb` partial accepts `task`, `title`, `subtitle`, `completed_url`, `failed_url`, `poll_url`, and optional `milestones` hash.
 
 ### Recipe Import Pipeline
 

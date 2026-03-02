@@ -1,5 +1,12 @@
 <%= turbo_frame_tag "ai_task_status_#{ai_task_status.id}" do %>
-  <div data-status="<%= ai_task_status.status %>" data-progress="<%= ai_task_status.progress_percentage %>">
-    <%= ai_task_status.status.humanize %> — <%= ai_task_status.progress_percentage %>%
+  <div data-ai-progress-target="statusFrame"
+       data-status="<%= ai_task_status.status %>"
+       data-progress="<%= ai_task_status.progress_percentage %>"
+       data-error="<%= ai_task_status.error_message %>">
+    <div class="w-full bg-warm-200 rounded-full h-2.5 overflow-hidden">
+      <div class="bg-primary-600 h-2.5 rounded-full transition-all duration-700 ease-out"
+           style="width: <%= ai_task_status.progress_percentage %>%"></div>
+    </div>
+    <p class="text-sm text-warm-400 mt-2"><%= ai_task_status.progress_percentage %>% complete</p>
   </div>
 <% end %>

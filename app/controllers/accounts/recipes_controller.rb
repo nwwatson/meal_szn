@@ -191,11 +191,12 @@ class Accounts::RecipesController < ApplicationController
 
   def import_status
     @task = Current.account.ai_task_statuses.find(params[:task_id])
+    @failed_url = failure_path_for(@task)
 
     if @task.completed?
       redirect_to import_review_recipes_path(task_id: @task.id)
     elsif @task.failed?
-      redirect_to failure_path_for(@task), alert: "Import failed: #{@task.error_message}"
+      redirect_to @failed_url, alert: "Import failed: #{@task.error_message}"
     end
   end
 
