@@ -1,0 +1,209 @@
+// MealSzn Service Worker — offline caching for recipes, meal plans, and shopping lists
+const CACHE_VERSION = "v1"
+const STATIC_CACHE = `mealsz-static-${CACHE_VERSION}`
+const DYNAMIC_CACHE = `mealsz-dynamic-${CACHE_VERSION}`
+const SHOPPING_CACHE = `mealsz-shopping-${CACHE_VERSION}`
+
+// App shell resources cached on install
+const APP_SHELL = [
+  "/",
+  "/icon.png",
+  "/icon.svg"
+]
+
+// Patterns for cacheable content pages
+const RECIPE_PATTERN = /\/recipes\/[^\/]+$/
+const MEAL_PLAN_PATTERN = /\/meal_plans\/[^\/]+$/
+const SHOPPING_LIST_PATTERN = /\/meal_plans\/[^\/]+\/shopping_list$/
+
+// Install: cache app shell
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(APP_SHELL))
+  )
+  self.skipWaiting()
+})
+
+// Activate: clean old caches
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith("mealsz-") && key !== STATIC_CACHE && key !== DYNAMIC_CACHE && key !== SHOPPING_CACHE)
+          .map((key) => caches.delete(key))
+      )
+    )
+  )
+  self.clients.claim()
+})
+
+// Fetch: apply caching strategies
+self.addEventListener("fetch", (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+
+  // Only handle GET requests from same origin
+  if (request.method !== "GET" || url.origin !== self.location.origin) return
+
+  // Skip API requests, Turbo Stream requests, and asset fingerprinted files
+  if (url.pathname.includes("/api/")) return
+  if (request.headers.get("Accept")?.includes("text/vnd.turbo-stream.html")) return
+
+  // Static assets (CSS, JS with fingerprints) — cache-first
+  if (url.pathname.match(/\.(css|js)$/) && url.pathname.includes("/assets/")) {
+    event.respondWith(cacheFirst(request, STATIC_CACHE))
+    return
+  }
+
+  // Font files — cache-first
+  if (url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com") {
+    event.respondWith(cacheFirst(request, STATIC_CACHE))
+    return
+  }
+
+  // Shopping lists — network-first with dedicated cache (proactive caching)
+  if (SHOPPING_LIST_PATTERN.test(url.pathname)) {
+    event.respondWith(networkFirst(request, SHOPPING_CACHE))
+    return
+  }
+
+  // Recipes and meal plans — network-first, cached on view
+  if (RECIPE_PATTERN.test(url.pathname) || MEAL_PLAN_PATTERN.test(url.pathname)) {
+    event.respondWith(networkFirst(request, DYNAMIC_CACHE))
+    return
+  }
+
+  // HTML pages — network-first with dynamic cache
+  if (request.headers.get("Accept")?.includes("text/html")) {
+    event.respondWith(networkFirst(request, DYNAMIC_CACHE))
+    return
+  }
+
+  // Images — cache-first
+  if (url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)) {
+    event.respondWith(cacheFirst(request, STATIC_CACHE))
+    return
+  }
+})
+
+// Cache-first: return cached version, fall back to network
+async function cacheFirst(request, cacheName) {
+  const cached = await caches.match(request)
+  if (cached) return cached
+
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      const cache = await caches.open(cacheName)
+      cache.put(request, response.clone())
+    }
+    return response
+  } catch (error) {
+    return offlineFallback()
+  }
+}
+
+// Network-first: try network, fall back to cache
+async function networkFirst(request, cacheName) {
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      const cache = await caches.open(cacheName)
+      cache.put(request, response.clone())
+    }
+    return response
+  } catch (error) {
+    const cached = await caches.match(request)
+    if (cached) return cached
+    return offlineFallback()
+  }
+}
+
+// Offline fallback page
+function offlineFallback() {
+  return new Response(
+    `<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Offline - MealSzn</title>
+      <style>
+        body {
+          font-family: "Nunito Sans", system-ui, sans-serif;
+          background: linear-gradient(168deg, #fdfbf7 0%, #fae8dd 50%, #fff5eb 100%);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0;
+          color: #504333;
+        }
+        .container {
+          text-align: center;
+          padding: 2rem;
+        }
+        .icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+        }
+        h1 {
+          font-family: "Bitter", Georgia, serif;
+          font-size: 1.5rem;
+          margin-bottom: 0.5rem;
+          color: #3d2b1f;
+        }
+        p {
+          margin-bottom: 1.5rem;
+          color: #6b5a42;
+        }
+        button {
+          background: #c2582a;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 0.5rem;
+          font-size: 1rem;
+          cursor: pointer;
+          font-family: inherit;
+        }
+        button:hover { background: #a14722; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="icon">&#x1F50C;</div>
+        <h1>You're offline</h1>
+        <p>This page isn't available offline. Check your connection and try again.</p>
+        <button onclick="window.location.reload()">Retry</button>
+      </div>
+    </body>
+    </html>`,
+    {
+      status: 503,
+      statusText: "Service Unavailable",
+      headers: { "Content-Type": "text/html; charset=utf-8" }
+    }
+  )
+}
+
+// Listen for messages from the app
+self.addEventListener("message", (event) => {
+  if (event.data.type === "CACHE_SHOPPING_LIST" && event.data.url) {
+    event.waitUntil(
+      caches.open(SHOPPING_CACHE).then(async (cache) => {
+        try {
+          const response = await fetch(event.data.url)
+          if (response.ok) await cache.put(event.data.url, response)
+        } catch (e) {
+          // Silently fail — already offline
+        }
+      })
+    )
+  }
+
+  if (event.data.type === "SKIP_WAITING") {
+    self.skipWaiting()
+  }
+})

@@ -1,8 +1,32 @@
 import { Controller } from "@hotwired/stimulus"
 
+const PENDING_TOGGLES_KEY = "mealsz_pending_toggles"
+
 export default class extends Controller {
   static targets = ["uncheckedList", "checkedList", "uncheckedSection", "checkedSection",
                      "uncheckedCount", "checkedCount", "progressBar", "statusText"]
+
+  connect() {
+    this.onlineHandler = () => this.syncPendingToggles()
+    window.addEventListener("online", this.onlineHandler)
+
+    // Sync any queued toggles from a previous offline session
+    if (navigator.onLine) this.syncPendingToggles()
+
+    // Proactively cache this shopping list page for offline use
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: "CACHE_SHOPPING_LIST",
+        url: window.location.href
+      })
+    }
+
+    this.updateSyncBanner()
+  }
+
+  disconnect() {
+    window.removeEventListener("online", this.onlineHandler)
+  }
 
   async toggleItem(event) {
     const row = event.currentTarget
@@ -13,6 +37,14 @@ export default class extends Controller {
     // Prevent double-taps
     if (row.dataset.toggling === "true") return
     row.dataset.toggling = "true"
+
+    if (!navigator.onLine) {
+      // Offline: toggle optimistically and queue for sync
+      const currentlyChecked = row.closest("[data-shopping-list-target='checkedList']") !== null
+      this.queueToggle(url, itemId)
+      this.animateToggle(row, !currentlyChecked)
+      return
+    }
 
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
 
@@ -28,9 +60,53 @@ export default class extends Controller {
       const data = await response.json()
       this.animateToggle(row, data.checked)
     } catch (e) {
-      row.dataset.toggling = "false"
-      window.location.reload()
+      // Network error — queue for sync and toggle optimistically
+      const currentlyChecked = row.closest("[data-shopping-list-target='checkedList']") !== null
+      this.queueToggle(url, itemId)
+      this.animateToggle(row, !currentlyChecked)
     }
+  }
+
+  queueToggle(url, itemId) {
+    const pending = JSON.parse(localStorage.getItem(PENDING_TOGGLES_KEY) || "[]")
+    // If there's already a pending toggle for this item, they cancel out
+    const existingIndex = pending.findIndex((t) => t.itemId === itemId)
+    if (existingIndex !== -1) {
+      pending.splice(existingIndex, 1)
+    } else {
+      pending.push({ url, itemId, timestamp: Date.now() })
+    }
+    localStorage.setItem(PENDING_TOGGLES_KEY, JSON.stringify(pending))
+    this.updateSyncBanner()
+  }
+
+  async syncPendingToggles() {
+    const pending = JSON.parse(localStorage.getItem(PENDING_TOGGLES_KEY) || "[]")
+    if (pending.length === 0) return
+
+    const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
+    const remaining = []
+
+    for (const toggle of pending) {
+      try {
+        await fetch(toggle.url, {
+          method: "PATCH",
+          headers: {
+            "X-CSRF-Token": csrfToken,
+            "Accept": "application/json"
+          }
+        })
+      } catch (e) {
+        remaining.push(toggle)
+      }
+    }
+
+    if (remaining.length > 0) {
+      localStorage.setItem(PENDING_TOGGLES_KEY, JSON.stringify(remaining))
+    } else {
+      localStorage.removeItem(PENDING_TOGGLES_KEY)
+    }
+    this.updateSyncBanner()
   }
 
   animateToggle(row, isNowChecked) {
@@ -118,6 +194,13 @@ export default class extends Controller {
       const pct = Math.round((checkedCount / total) * 100)
       this.progressBarTarget.style.width = `${pct}%`
     }
+  }
+
+  updateSyncBanner() {
+    const banner = document.getElementById("sync-pending-banner")
+    if (!banner) return
+    const pending = JSON.parse(localStorage.getItem(PENDING_TOGGLES_KEY) || "[]")
+    banner.classList.toggle("hidden", pending.length === 0)
   }
 
   get checkedSvg() {
