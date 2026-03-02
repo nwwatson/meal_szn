@@ -10,8 +10,24 @@ A meal planning application built with Rails 8.1 for managing recipes, weekly me
 ## Requirements
 
 - Ruby 3.4.4
+- Node.js 20.11.1
 - SQLite3
-- Node.js (see `.node-version`)
+
+### Recommended: Install with mise
+
+[mise](https://mise.jdx.dev/) manages Ruby and Node.js versions automatically from the project's `.mise.toml`.
+
+1. [Install mise](https://mise.jdx.dev/getting-started.html)
+2. Run from the project directory:
+   ```sh
+   mise install
+   ```
+
+This installs the correct Ruby and Node.js versions. Then proceed to Setup below.
+
+### Alternative: Manual installation
+
+If you prefer rbenv/nodenv/asdf or system packages, ensure Ruby and Node.js match the versions in `.ruby-version` and `.node-version`. SQLite3 must be installed separately (e.g., `brew install sqlite3` on macOS).
 
 ## Setup
 
@@ -19,7 +35,7 @@ A meal planning application built with Rails 8.1 for managing recipes, weekly me
 bin/setup
 ```
 
-This installs dependencies and prepares the database. Pass `--reset` to drop and recreate the database.
+This installs gem dependencies and prepares the database. Pass `--reset` to drop and recreate the database.
 
 ## Development
 
