@@ -20,6 +20,7 @@ class AiTaskStatus < ApplicationRecord
 
   validate :validate_status_transition, if: :status_changed?, unless: :new_record?
 
+  after_update_commit :broadcast_progress, if: :saved_change_to_progress_percentage?
   after_update_commit :broadcast_status_change, if: :saved_change_to_status?
 
   def mark_processing!
@@ -47,7 +48,15 @@ class AiTaskStatus < ApplicationRecord
     errors.add(:status, "cannot transition from #{status_was} to #{status}")
   end
 
+  def broadcast_progress
+    broadcast_update
+  end
+
   def broadcast_status_change
+    broadcast_update
+  end
+
+  def broadcast_update
     broadcast_replace_to(
       [ account, :ai_task_statuses ],
       target: "ai_task_status_#{id}",

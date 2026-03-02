@@ -144,11 +144,19 @@ class AiTaskStatusTest < ActiveSupport::TestCase
     end
   end
 
-  test "does not broadcast when non-status attributes change" do
+  test "broadcasts when progress percentage changes" do
+    task = ai_task_statuses(:processing_task)
+
+    assert_turbo_stream_broadcasts([ task.account, :ai_task_statuses ]) do
+      task.update!(progress_percentage: 75)
+    end
+  end
+
+  test "does not broadcast when non-progress non-status attributes change" do
     task = ai_task_statuses(:processing_task)
 
     assert_no_turbo_stream_broadcasts([ task.account, :ai_task_statuses ]) do
-      task.update!(progress_percentage: 75)
+      task.update!(error_message: "some note")
     end
   end
 end

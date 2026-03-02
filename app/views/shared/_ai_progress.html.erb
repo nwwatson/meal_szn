@@ -1,0 +1,50 @@
+<%# Reusable AI progress partial
+     locals:
+       task          - AiTaskStatus instance
+       title         - heading text (e.g. "Importing Recipe...")
+       subtitle      - description below the spinner
+       completed_url - redirect URL on completion
+       failed_url    - redirect URL on failure
+       poll_url      - fallback polling URL
+       milestones    - optional hash of { percentage_threshold => message } for contextual status text
+%>
+<% milestones ||= {} %>
+
+<%= turbo_stream_from Current.account, :ai_task_statuses %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center"
+     data-controller="ai-progress"
+     data-ai-progress-poll-url-value="<%= poll_url %>"
+     data-ai-progress-completed-url-value="<%= completed_url %>"
+     data-ai-progress-failed-url-value="<%= failed_url %>">
+
+  <h1 class="font-display font-bold text-3xl text-warm-900 mb-4"><%= title %></h1>
+
+  <div class="bg-white rounded-lg shadow p-8 space-y-6">
+    <div class="flex justify-center">
+      <div class="relative">
+        <svg class="animate-spin h-16 w-16 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <% if milestones.any? %>
+        <p class="text-warm-700 text-lg font-medium mb-1">
+          <% milestone_message = milestones.sort_by { |k, _| -k }.find { |k, _| task.progress_percentage >= k }&.last %>
+          <%= milestone_message || subtitle %>
+        </p>
+      <% end %>
+      <p class="text-warm-500 text-sm"><%= subtitle %></p>
+    </div>
+
+    <%= render partial: "ai_task_statuses/ai_task_status", locals: { ai_task_status: task } %>
+  </div>
+</div>
