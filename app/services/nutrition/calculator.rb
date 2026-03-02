@@ -6,8 +6,9 @@ module Nutrition
 
     SKIPPABLE_UNITS = %w[pinch dash].freeze
 
-    def initialize(recipe)
+    def initialize(recipe, usda_client: nil)
       @recipe = recipe
+      @usda_client = usda_client
     end
 
     def calculate
@@ -78,6 +79,32 @@ module Nutrition
         return item
       end
 
+      # Fall back to USDA API search
+      item = search_usda_for(ingredient)
+      if item
+        ingredient.update_columns(nutrition_item_id: item.id)
+        return item
+      end
+
+      nil
+    end
+
+    def search_usda_for(ingredient)
+      client = @usda_client || Usda::Client.new
+      search_term = NutritionItem.normalize_name(ingredient.name)
+      result = client.search(search_term, page_size: 1)
+
+      foods = result["foods"]
+      return nil if foods.blank?
+
+      # Import the top match and create an alias
+      item = Usda::FoodImporter.new(foods.first).import
+      NutritionItem::Alias.find_or_create_by!(name: search_term) do |a|
+        a.nutrition_item = item
+      end
+      item
+    rescue Usda::Client::ApiError, Net::OpenTimeout, Net::ReadTimeout, OpenSSL::SSL::SSLError, SocketError, Errno::ECONNREFUSED => e
+      Rails.logger.warn("[Nutrition::Calculator] USDA search failed for '#{ingredient.name}': #{e.message}")
       nil
     end
   end

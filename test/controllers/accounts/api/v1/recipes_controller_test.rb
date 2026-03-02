@@ -165,4 +165,51 @@ class Accounts::Api::V1::RecipesControllerTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
     assert_includes json["errors"], "Title can't be blank"
   end
+
+  test "calculate_nutrition returns nutrition for recipe with resolved ingredients" do
+    recipe = @account.recipes.create!(title: "Calc Test", category: :breakfast, servings: 2)
+    egg_item = nutrition_items(:egg)
+    recipe.ingredients.create!(name: "Eggs", quantity: "4", unit: "large", nutrition_item: egg_item, display_order: 0)
+
+    post "/#{@account.external_account_id}/api/v1/recipes/#{recipe.id}/calculate_nutrition",
+         headers: auth_header(@write_token),
+         as: :json
+
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json["recipe"]["nutrition"].present?
+    assert json["recipe"]["nutrition"]["calories"] > 0
+  end
+
+  test "calculate_nutrition returns error for recipe with no ingredients" do
+    recipe = @account.recipes.create!(title: "Empty", category: :dinner)
+
+    post "/#{@account.external_account_id}/api/v1/recipes/#{recipe.id}/calculate_nutrition",
+         headers: auth_header(@write_token),
+         as: :json
+
+    assert_response :unprocessable_entity
+    json = JSON.parse(response.body)
+    assert_equal "Recipe has no ingredients", json["error"]
+  end
+
+  test "calculate_nutrition returns unresolved ingredients" do
+    @recipe.ingredients.create!(name: "Unknown exotic thing", quantity: "1", unit: "cup", display_order: 0)
+
+    post "/#{@account.external_account_id}/api/v1/recipes/#{@recipe.id}/calculate_nutrition",
+         headers: auth_header(@write_token),
+         as: :json
+
+    assert_response :unprocessable_entity
+    json = JSON.parse(response.body)
+    assert json["unresolved_ingredients"].present?
+  end
+
+  test "calculate_nutrition requires write permission" do
+    post "/#{@account.external_account_id}/api/v1/recipes/#{@recipe.id}/calculate_nutrition",
+         headers: auth_header(@read_token),
+         as: :json
+
+    assert_response :forbidden
+  end
 end

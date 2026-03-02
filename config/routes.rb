@@ -96,6 +96,9 @@ Rails.application.routes.draw do
       namespace :v1 do
         # RecipeScanner iOS API
         resources :recipes, only: %i[index show create update destroy] do
+          member do
+            post :calculate_nutrition
+          end
           collection do
             post :import_url
             post :import_photo
