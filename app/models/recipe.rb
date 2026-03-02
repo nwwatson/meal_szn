@@ -24,6 +24,8 @@ class Recipe < ApplicationRecord
   validate :validate_image_attachment
   validate :validate_images_attachments
 
+  after_commit :enqueue_nutrition_calculation, on: [ :create, :update ], if: :should_auto_calculate_nutrition?
+
   enum :category, {
     breakfast: 0,
     lunch: 1,
@@ -144,6 +146,17 @@ class Recipe < ApplicationRecord
   end
 
   private
+
+  def enqueue_nutrition_calculation
+    NutritionCalculationJob.perform_later(id)
+  end
+
+  def should_auto_calculate_nutrition?
+    # Skip if nutrition was manually provided or no ingredients exist
+    return false if ingredients.none?
+    return false if nutrition_data.present? && !nutrition_data.auto_calculated?
+    true
+  end
 
   def validate_image_attachment
     validate_single_image(image, :image) if image.attached?

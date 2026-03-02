@@ -1,5 +1,24 @@
 require "test_helper"
 
+class FakeUsdaClientForCalculator
+  attr_reader :search_result, :should_error
+
+  def initialize(search_result: nil, should_error: false)
+    @search_result = search_result
+    @should_error = should_error
+  end
+
+  def search(query, page_size: 10)
+    raise Usda::Client::ApiError, "API error" if should_error
+    search_result
+  end
+
+  def food(fdc_id)
+    raise Usda::Client::ApiError, "API error" if should_error
+    {}
+  end
+end
+
 class Nutrition::CalculatorTest < ActiveSupport::TestCase
   setup do
     @account = accounts(:one)
@@ -28,9 +47,10 @@ class Nutrition::CalculatorTest < ActiveSupport::TestCase
   end
 
   test "returns unresolved when ingredients not matched" do
+    no_results_client = FakeUsdaClientForCalculator.new(search_result: { "foods" => [] })
     @recipe.ingredients.create!(name: "Unknown Food", quantity: "1", unit: "cup")
 
-    result = Nutrition::Calculator.new(@recipe.reload).calculate
+    result = Nutrition::Calculator.new(@recipe.reload, usda_client: no_results_client).calculate
     assert_not result.success?
     assert_equal 1, result.unresolved_ingredients.size
     assert_equal "Unknown Food", result.unresolved_ingredients.first.name
@@ -85,5 +105,58 @@ class Nutrition::CalculatorTest < ActiveSupport::TestCase
     result = Nutrition::Calculator.new(@recipe.reload).calculate
     # nil quantity is skipped, not unresolved
     assert result.success?
+  end
+
+  test "falls back to USDA API search when alias lookup fails" do
+    fake_client = FakeUsdaClientForCalculator.new(
+      search_result: {
+        "foods" => [ {
+          "fdcId" => 999999,
+          "description" => "Chicken, breast, raw",
+          "foodNutrients" => [
+            { "nutrient" => { "id" => 1008 }, "amount" => 165 },
+            { "nutrient" => { "id" => 1004 }, "amount" => 3.6 },
+            { "nutrient" => { "id" => 1003 }, "amount" => 31.0 },
+            { "nutrient" => { "id" => 1005 }, "amount" => 0.0 },
+            { "nutrient" => { "id" => 1079 }, "amount" => 0.0 }
+          ]
+        } ]
+      }
+    )
+
+    @recipe.ingredients.create!(name: "Chicken breast", quantity: "200", unit: "g")
+
+    result = Nutrition::Calculator.new(@recipe.reload, usda_client: fake_client).calculate
+    assert result.success?
+
+    # Verify ingredient was linked
+    ingredient = @recipe.ingredients.first.reload
+    assert_not_nil ingredient.nutrition_item_id
+
+    # Verify alias was created
+    assert_not_nil NutritionItem::Alias.find_by(name: "chicken breast")
+
+    # 200g of chicken breast (165 cal per 100g) = 330 total, 165 per serving (2 servings)
+    assert_in_delta 165, result.nutrition_data[:calories], 1
+  end
+
+  test "handles USDA API error gracefully" do
+    error_client = FakeUsdaClientForCalculator.new(should_error: true)
+
+    @recipe.ingredients.create!(name: "Unknown exotic ingredient", quantity: "1", unit: "cup")
+
+    result = Nutrition::Calculator.new(@recipe.reload, usda_client: error_client).calculate
+    assert_not result.success?
+    assert_equal 1, result.unresolved_ingredients.size
+  end
+
+  test "handles USDA API returning no results" do
+    empty_client = FakeUsdaClientForCalculator.new(search_result: { "foods" => [] })
+
+    @recipe.ingredients.create!(name: "Nonexistent food xyz", quantity: "1", unit: "cup")
+
+    result = Nutrition::Calculator.new(@recipe.reload, usda_client: empty_client).calculate
+    assert_not result.success?
+    assert_equal 1, result.unresolved_ingredients.size
   end
 end

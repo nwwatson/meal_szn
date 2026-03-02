@@ -1,6 +1,8 @@
 require "test_helper"
 
 class RecipeTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   test "belongs to account" do
     recipe = recipes(:one)
     assert_respond_to recipe, :account
@@ -282,5 +284,41 @@ class RecipeTest < ActiveSupport::TestCase
 
     assert response[:tags].is_a?(Array)
     assert_includes response[:tags], "keto"
+  end
+
+  test "enqueues nutrition calculation job on create with ingredients" do
+    account = accounts(:one)
+
+    assert_enqueued_with(job: NutritionCalculationJob) do
+      account.recipes.create!(
+        title: "Auto Calc Recipe",
+        category: :breakfast,
+        servings: 2,
+        ingredients_attributes: [
+          { name: "Eggs", quantity: "2", unit: "large", display_order: 0 }
+        ]
+      )
+    end
+  end
+
+  test "does not enqueue nutrition calculation job without ingredients" do
+    account = accounts(:one)
+
+    assert_no_enqueued_jobs(only: NutritionCalculationJob) do
+      account.recipes.create!(
+        title: "Empty Recipe",
+        category: :breakfast,
+        servings: 2
+      )
+    end
+  end
+
+  test "does not enqueue nutrition calculation when manual nutrition exists" do
+    recipe = recipes(:one)
+    # recipes(:one) has nutrition_data with auto_calculated: false
+
+    assert_no_enqueued_jobs(only: NutritionCalculationJob) do
+      recipe.update!(title: "Updated Title")
+    end
   end
 end

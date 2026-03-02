@@ -1,8 +1,8 @@
 class Accounts::Api::V1::RecipesController < Accounts::Api::V1::ApplicationController
   include AiRateLimited
 
-  before_action :require_write_permission!, only: %i[create update destroy import_url import_photo import_confirm]
-  before_action :set_recipe, only: %i[show update destroy]
+  before_action :require_write_permission!, only: %i[create update destroy import_url import_photo import_confirm calculate_nutrition]
+  before_action :set_recipe, only: %i[show update destroy calculate_nutrition]
   before_action :set_task, only: %i[import_status import_confirm]
   before_action -> { check_ai_rate_limit!(:recipe_import) }, only: %i[import_url import_photo]
 
@@ -57,6 +57,28 @@ class Accounts::Api::V1::RecipesController < Accounts::Api::V1::ApplicationContr
   def destroy
     @recipe.destroy
     head :no_content
+  end
+
+  # POST /api/v1/recipes/:id/calculate_nutrition
+  def calculate_nutrition
+    if @recipe.ingredients.none?
+      render json: { error: "Recipe has no ingredients" }, status: :unprocessable_entity
+      return
+    end
+
+    result = Nutrition::Calculator.new(@recipe.reload).calculate
+
+    if result.success?
+      nutrition = @recipe.nutrition_data || @recipe.build_nutrition_data
+      nutrition.update!(result.nutrition_data)
+      render json: { recipe: @recipe.reload.to_api_response }
+    else
+      unresolved_names = result.unresolved_ingredients.map(&:name)
+      render json: {
+        error: "Could not resolve all ingredients",
+        unresolved_ingredients: unresolved_names
+      }, status: :unprocessable_entity
+    end
   end
 
   # POST /api/v1/recipes/import_url
