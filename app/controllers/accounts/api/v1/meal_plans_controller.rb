@@ -14,17 +14,7 @@ class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationCon
       .order(start_date: :desc)
 
     render json: {
-      meal_plans: meal_plans.map { |plan|
-        {
-          id: plan.id,
-          name: plan.name,
-          start_date: plan.start_date,
-          end_date: plan.end_date,
-          duration_days: plan.duration_days,
-          daily_calories_target: plan.daily_calories_target,
-          average_daily_calories: plan.average_daily_calories.round
-        }
-      }
+      meal_plans: meal_plans.map(&:to_api_summary)
     }
   end
 

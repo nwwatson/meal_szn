@@ -95,7 +95,11 @@ Pagination uses lazy Turbo Frames: each page renders a `turbo_frame_tag` for the
 
 ### API
 
-Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionController::API` (no views). Recipes expose `to_api_response` and `to_meal_planning_response` serialization methods directly on the model.
+Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionController::API` (no views).
+
+**Account access convention:** Use `Current.account` everywhere (both web and API controllers). The API base controller sets `Current.account` from the request middleware and provides `current_account` as a convenience alias. Shared concerns like `AiRateLimited` use `Current.account` directly.
+
+**Serialization convention:** All API responses use model serialization methods — never build response hashes inline in controllers. Models that serve API responses define `to_api_response` (full representation) and optionally `to_api_summary` (lightweight, e.g., for index listings). Current models with serialization methods: `Recipe`, `RecipeInstruction`, `RecipeNutritionData`, `Ingredient`, `MealPlan` (also `to_api_summary`), `MealPlanDay`, `MealPlanMeal`, `ShoppingList`, `ShoppingListItem`, `DietaryProfile`. Recipe also has `to_meal_planning_response` for the meal planning API.
 
 **Recipe Import API** — async import endpoints on the recipes controller:
 - `POST /:account_id/api/v1/recipes/import_url` — accepts `{ url }`, returns `{ task_id, status }`

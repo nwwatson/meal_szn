@@ -38,6 +38,18 @@ class MealPlan < ApplicationRecord
     total_calories / days.count
   end
 
+  def to_api_summary
+    {
+      id: id,
+      name: name,
+      start_date: start_date,
+      end_date: end_date,
+      duration_days: duration_days,
+      daily_calories_target: daily_calories_target,
+      average_daily_calories: average_daily_calories.round
+    }
+  end
+
   def to_api_response
     {
       id: id,

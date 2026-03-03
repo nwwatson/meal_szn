@@ -46,4 +46,15 @@ class ShoppingListItemTest < ActiveSupport::TestCase
     item = ShoppingListItem.new(name: "Salt")
     assert_equal "Salt", item.display_text
   end
+
+  test "to_api_response includes all fields" do
+    item = shopping_list_items(:salmon)
+    response = item.to_api_response
+    assert_equal item.id, response[:id]
+    assert_equal "Salmon Fillet", response[:name]
+    assert_equal "2", response[:quantity]
+    assert_equal "lbs", response[:unit]
+    assert_equal false, response[:checked]
+    assert_equal "2 lbs Salmon Fillet", response[:display_text]
+  end
 end
