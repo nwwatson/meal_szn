@@ -1,0 +1,149 @@
+<% content_for(:title, "Family - MealSzn") %>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-3xl font-display font-bold text-warm-900 mb-8">Family</h1>
+
+  <%# ============ JOIN CODE SECTION ============ %>
+  <% if Current.user.admin? %>
+    <section class="mb-10">
+      <h2 class="text-xl font-display font-bold text-warm-800 mb-4">Invite to Your Account</h2>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <%# Join code display %>
+        <div class="mb-6" data-controller="clipboard">
+          <label class="block text-sm font-medium text-warm-600 mb-2">Share this join code</label>
+          <div class="flex items-center gap-3">
+            <code data-clipboard-target="source" class="text-2xl font-mono font-bold tracking-widest text-primary-700 bg-primary-50 px-4 py-2 rounded-lg select-all"><%= @join_code.formatted_code %></code>
+            <button type="button" data-action="clipboard#copy" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors" data-clipboard-target="button">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+              </svg>
+              <span data-clipboard-target="feedback">Copy</span>
+            </button>
+          </div>
+          <p class="text-sm text-warm-500 mt-2">Anyone with this code can join your account as a member.</p>
+          <%= button_to "Regenerate Code", join_code_path, method: :patch, class: "text-sm text-warm-500 hover:text-primary-600 mt-1 underline", data: { turbo_confirm: "Regenerate the join code? The current code will stop working." } %>
+        </div>
+
+        <%# Email invitation %>
+        <div class="border-t border-warm-100 pt-5">
+          <label class="block text-sm font-medium text-warm-600 mb-2">Or send an email invitation</label>
+          <%= form_with url: invitations_path, method: :post, class: "flex items-end gap-3" do |f| %>
+            <div class="flex-1">
+              <%= f.email_field :email_address, placeholder: "email@example.com", class: "w-full rounded-lg border-warm-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm", required: true %>
+            </div>
+            <%= f.submit "Send Invite", class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium cursor-pointer" %>
+          <% end %>
+        </div>
+
+        <%# Pending invitations %>
+        <% if @pending_invitations.any? %>
+          <div class="border-t border-warm-100 pt-4 mt-4">
+            <h3 class="text-sm font-medium text-warm-600 mb-2">Pending Invitations</h3>
+            <div class="space-y-2">
+              <% @pending_invitations.each do |invitation| %>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-warm-700"><%= invitation.email_address %></span>
+                  <div class="flex items-center gap-3">
+                    <span class="text-warm-400">Expires <%= time_ago_in_words(invitation.expires_at) %></span>
+                    <%= button_to "Cancel", invitation_path(invitation), method: :delete, class: "text-red-500 hover:text-red-700 text-xs" %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <%# ============ MEMBERS SECTION ============ %>
+  <section class="mb-10">
+    <h2 class="text-xl font-display font-bold text-warm-800 mb-4">Members</h2>
+
+    <div class="space-y-3">
+      <% @members.each do |member| %>
+        <div class="bg-white rounded-lg shadow p-4 flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-warm-900"><%= member.name %></span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= member.owner? ? 'bg-accent-100 text-accent-800' : 'bg-warm-100 text-warm-600' %>">
+                <%= member.role.capitalize %>
+              </span>
+              <% if member == Current.user %>
+                <span class="text-xs text-warm-400">(you)</span>
+              <% end %>
+            </div>
+            <% if member.identity %>
+              <p class="text-sm text-warm-500"><%= member.identity.email_address %></p>
+            <% end %>
+          </div>
+          <% if Current.user.admin? && member != Current.user && !member.owner? %>
+            <%= button_to "Remove", member_path(member), method: :delete, class: "text-sm text-red-500 hover:text-red-700 font-medium", data: { turbo_confirm: "Remove #{member.name} from the account? They will lose access immediately." } %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <% unless Current.user.owner? %>
+      <div class="mt-4">
+        <%= link_to "Leave this account", membership_path, class: "text-sm text-red-500 hover:text-red-700 underline" %>
+      </div>
+    <% end %>
+  </section>
+
+  <%# ============ DIETARY PROFILES SECTION ============ %>
+  <section>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-display font-bold text-warm-800">Dietary Profiles</h2>
+      <%= link_to "New Profile", new_dietary_profile_path, class: "bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium" %>
+    </div>
+
+    <% if @dietary_profiles.any? %>
+      <div class="space-y-3">
+        <% @dietary_profiles.each do |profile| %>
+          <div class="bg-white rounded-lg shadow p-5">
+            <div class="flex items-start gap-5">
+              <% targets = profile.macro_targets %>
+              <% if targets && targets[:fat_g] && targets[:protein_g] && targets[:carbs_g] %>
+                <%= mini_donut_chart(fat_g: targets[:fat_g], protein_g: targets[:protein_g], carbs_g: targets[:carbs_g]) %>
+              <% end %>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between mb-1">
+                  <h3 class="text-lg font-semibold text-warm-900"><%= profile.name %></h3>
+                  <div class="flex items-center gap-3 text-sm shrink-0">
+                    <%= link_to "Edit", edit_dietary_profile_path(profile), class: "text-primary-600 hover:text-primary-700 font-medium" %>
+                    <%= button_to "Remove", dietary_profile_path(profile), method: :delete, class: "text-red-600 hover:text-red-700 font-medium", data: { turbo_confirm: "Remove this dietary profile?" } %>
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 text-sm text-warm-500">
+                  <% if profile.diet_name.present? %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"><%= profile.diet_name %></span>
+                  <% end %>
+                  <% if profile.daily_calories_target %>
+                    <span><%= profile.daily_calories_target %> cal/day</span>
+                  <% end %>
+                  <% if profile.user %>
+                    <span>Linked to <%= profile.user.name %></span>
+                  <% end %>
+                </div>
+                <% if targets && targets[:fat_g] %>
+                  <div class="flex gap-4 mt-2 text-xs text-warm-500">
+                    <span>Fat: <strong class="text-warm-700"><%= targets[:fat_g] %>g</strong></span>
+                    <span>Protein: <strong class="text-warm-700"><%= targets[:protein_g] %>g</strong></span>
+                    <span>Carbs: <strong class="text-warm-700"><%= targets[:carbs_g] %>g</strong></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="bg-white rounded-lg shadow px-6 py-12 text-center">
+        <p class="text-warm-500 mb-4">No dietary profiles yet. Create profiles for your family members to track individual nutrition goals.</p>
+        <%= link_to "Create First Profile", new_dietary_profile_path, class: "text-primary-600 hover:text-primary-700 font-medium" %>
+      </div>
+    <% end %>
+  </section>
+</div>

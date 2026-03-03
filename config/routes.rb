@@ -20,6 +20,14 @@ Rails.application.routes.draw do
     resource :completion, only: %i[new create], controller: "signups/completions"
   end
 
+  # Join an existing account via code
+  resource :join, only: %i[show create], controller: "join"
+  get "join/:code", to: "join#show", as: :join_with_code
+
+  # Accept an email invitation
+  get "invitations/:token/accept", to: "invitation_acceptances#show", as: :invitation_acceptance
+  patch "invitations/:token/accept", to: "invitation_acceptances#update"
+
   # First-boot onboarding flow (creates first account)
   resource :onboarding, only: %i[new create] do
     resource :completion, only: %i[new create], controller: "onboardings/completions"
@@ -61,6 +69,12 @@ Rails.application.routes.draw do
         get :import_review
       end
     end
+
+    # Family hub: members, invitations, join code
+    resources :members, only: %i[index destroy]
+    resources :invitations, only: %i[create destroy]
+    resource :join_code, only: :update, controller: "join_codes"
+    resource :membership, only: %i[show destroy]
 
     # Dietary Profiles
     resources :dietary_profiles, except: :show

@@ -4,6 +4,7 @@ class Identity < ApplicationRecord
   has_many :access_tokens, class_name: "Identity::AccessToken", dependent: :destroy
   has_many :users, dependent: :nullify
   has_many :accounts, through: :users
+  has_many :pending_recipe_transfers, dependent: :destroy
 
   validates :email_address, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
 
