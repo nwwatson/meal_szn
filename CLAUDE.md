@@ -64,7 +64,7 @@ All primary keys are string UUIDs. Key models:
 - `Account` → `User` (membership with role) → `Identity` (global email identity)
 - `Invitation` — email-based account invitations (token, expiry, acceptance tracking)
 - `PendingRecipeTransfer` — tracks recipes selected for transfer between accounts
-- `Recipe` → `RecipeIngredient`, `RecipeInstruction`, `RecipeNutritionData`, `RecipeTip` (nested attributes). Has optional `forked_from_id` for recipe lineage tracking.
+- `Recipe` → `RecipeIngredient`, `RecipeInstruction`, `RecipeNutritionData`, `RecipeTip` (nested attributes). Has optional `rating` (1–5 integer, nil = unrated) and `forked_from_id` for recipe lineage tracking.
 - `MealPlan` → `MealPlanDay` → `MealPlanMeal` → `Recipe` (hierarchical, with servings and daily calorie targets)
 - `Access` — polymorphic resource-level permissions
 - `MagicLink`, `Session`, `AccessToken` — auth infrastructure
@@ -88,7 +88,8 @@ The recipe index (`accounts/recipes#index`) supports search, sort, and filtering
 - `by_search(query)` — SQLite LIKE on title, description, ingredient name (left_joins + group)
 - `by_cook_time(max_minutes)` — total prep+cook time filter
 - `by_calorie_range(min, max)` — joins nutrition_data
-- `sorted_by(sort)` — `newest` (default), `alphabetical`, `quickest`, `most_used` (COUNT DISTINCT meal_plan_meals)
+- `by_min_rating(min)` — filters recipes with `rating >= min`
+- `sorted_by(sort)` — `newest` (default), `alphabetical`, `quickest`, `most_used` (COUNT DISTINCT meal_plan_meals), `highest_rated` (COALESCE rating to 3 for unrated)
 
 Pagination uses lazy Turbo Frames: each page renders a `turbo_frame_tag` for the next page with `loading: :lazy`, creating chained infinite scroll. The `_recipe_page` partial handles subsequent pages via Turbo Frame requests.
 
@@ -135,8 +136,8 @@ Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionControl
 `MealPlanGenerator` (`app/services/meal_plan_generator.rb`) orchestrates AI-powered meal plan creation using Haiku 4.5 for cost efficiency. Uses prompt caching (`cache_control: { type: "ephemeral" }`) on the static system prompt. Recipes are sent as integer indices (not UUIDs) to reduce token costs, with `@index_to_id` mapping indices back to UUIDs when populating the plan.
 
 `RecipeSelector` (`app/services/recipe_selector.rb`) pre-filters and ranks recipes before sending to the AI:
-- **Hard exclusion**: Removes recipes from recent past meal plans (adaptive N based on catalog size). Skipped when catalog < 20 recipes.
-- **Soft scoring** (5 weighted factors): usage frequency (30%), recency decay (25%), diet compatibility (20%), category fit (15%), newness bonus (10%)
+- **Hard exclusion**: Removes recipes from recent past meal plans (adaptive N based on catalog size). Skipped when catalog < 20 recipes. Also hard-excludes 1-star rated recipes.
+- **Soft scoring** (6 weighted factors): usage frequency (25%), recency decay (20%), diet compatibility (20%), user rating (15%), category fit (10%), newness bonus (10%). Rating scores: nil/3→50 (neutral), 2→20, 4→80, 5→100.
 - **Category-proportional selection**: Ensures minimum representation (`MIN_PER_CATEGORY = 3`) per active meal type category
 - Accepts `current_date:` override for deterministic testing
 

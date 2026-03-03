@@ -50,7 +50,8 @@ module RecipesHelper
       [ "Newest", "newest" ],
       [ "A–Z", "alphabetical" ],
       [ "Quickest", "quickest" ],
-      [ "Most Used", "most_used" ]
+      [ "Most Used", "most_used" ],
+      [ "Highest Rated", "highest_rated" ]
     ]
   end
 
@@ -70,6 +71,7 @@ module RecipesHelper
     count += 1 if params[:diet].present?
     count += 1 if params[:cook_time].present?
     count += 1 if params[:min_calories].present? || params[:max_calories].present?
+    count += 1 if params[:min_rating].present?
     count += Array(params[:tags]).size
     count += 1 if params[:sort].present? && params[:sort] != "newest"
     count
@@ -85,6 +87,7 @@ module RecipesHelper
     p[:min_calories] = params[:min_calories] if params[:min_calories].present?
     p[:max_calories] = params[:max_calories] if params[:max_calories].present?
     p[:tags] = params[:tags] if params[:tags].present?
+    p[:min_rating] = params[:min_rating] if params[:min_rating].present?
     p
   end
 

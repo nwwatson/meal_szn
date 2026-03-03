@@ -23,6 +23,7 @@ class Recipe < ApplicationRecord
 
   validates :title, presence: true
   validates :category, presence: true
+  validates :rating, inclusion: { in: 1..5 }, allow_nil: true
   validate :validate_image_attachment
   validate :validate_images_attachments
 
@@ -58,6 +59,7 @@ class Recipe < ApplicationRecord
   scope :by_cook_time, ->(max_minutes) {
     where("COALESCE(prep_time, 0) + COALESCE(cook_time, 0) <= ?", max_minutes.to_i) if max_minutes.present?
   }
+  scope :by_min_rating, ->(min) { where("rating >= ?", min.to_i) if min.present? }
   scope :by_calorie_range, ->(min_cal, max_cal) {
     if min_cal.present? || max_cal.present?
       scope = joins(:nutrition_data)
@@ -74,6 +76,8 @@ class Recipe < ApplicationRecord
       order(Arel.sql("COALESCE(prep_time, 0) + COALESCE(cook_time, 0) ASC"))
     when "most_used"
       left_joins(:meal_plan_meals).group("recipes.id").order(Arel.sql("COUNT(DISTINCT meal_plan_meals.id) DESC"))
+    when "highest_rated"
+      order(Arel.sql("COALESCE(rating, 3) DESC, created_at DESC"))
     else
       order(created_at: :desc)
     end
@@ -127,6 +131,7 @@ class Recipe < ApplicationRecord
       nutrition: nutrition_data&.to_api_response,
       tags: tags.pluck(:name),
       tips: tips.map(&:tip),
+      rating: rating,
       created_at: created_at,
       updated_at: updated_at
     }
@@ -142,7 +147,8 @@ class Recipe < ApplicationRecord
         prep_time: prep_time,
         cook_time: cook_time,
         nutrition_per_serving: nutrition_data&.to_meal_planning_response,
-        tags: tags.pluck(:name)
+        tags: tags.pluck(:name),
+        rating: rating
       }
     end
   end

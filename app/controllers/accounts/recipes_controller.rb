@@ -1,7 +1,7 @@
 class Accounts::RecipesController < ApplicationController
   include AiRateLimited
 
-  before_action :set_recipe, only: %i[show edit update destroy resolve_ingredients apply_resolution]
+  before_action :set_recipe, only: %i[show edit update destroy resolve_ingredients apply_resolution rate]
   before_action :set_unit_options, only: %i[new edit create update resolve_ingredients]
   before_action -> { check_ai_rate_limit!(:recipe_import, redirect_path: import_url_recipes_path) },
                 only: %i[start_import start_photo_import]
@@ -17,6 +17,7 @@ class Accounts::RecipesController < ApplicationController
       .by_search(params[:q])
       .by_cook_time(params[:cook_time])
       .by_calorie_range(params[:min_calories], params[:max_calories])
+      .by_min_rating(params[:min_rating])
       .sorted_by(params[:sort])
 
     @pagy, @recipes = pagy_countless(recipes)
@@ -27,6 +28,7 @@ class Accounts::RecipesController < ApplicationController
       .by_search(params[:q])
       .by_cook_time(params[:cook_time])
       .by_calorie_range(params[:min_calories], params[:max_calories])
+      .by_min_rating(params[:min_rating])
       .unscope(:group)
       .distinct
       .count
@@ -90,6 +92,22 @@ class Accounts::RecipesController < ApplicationController
   def destroy
     @recipe.destroy
     redirect_to recipes_path, notice: "Recipe was successfully deleted."
+  end
+
+  def rate
+    rating = params[:rating].to_i
+    @recipe.update!(rating: rating.zero? ? nil : rating)
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "recipe_rating_#{@recipe.id}",
+          partial: "accounts/recipes/star_rating",
+          locals: { recipe: @recipe, interactive: true, size: "w-6 h-6" }
+        )
+      end
+      format.html { redirect_to recipe_path(@recipe) }
+    end
   end
 
   def resolve_ingredients
@@ -250,6 +268,7 @@ class Accounts::RecipesController < ApplicationController
     params[:q].present? || params[:category].present? || params[:tags].present? ||
       params[:diet].present? || params[:cook_time].present? ||
       params[:min_calories].present? || params[:max_calories].present? ||
+      params[:min_rating].present? ||
       (params[:sort].present? && params[:sort] != "newest")
   end
 
@@ -378,6 +397,7 @@ class Accounts::RecipesController < ApplicationController
       :servings,
       :prep_time,
       :cook_time,
+      :rating,
       :image,
       images: [],
       ingredients_attributes: %i[id name quantity unit display_order _destroy],

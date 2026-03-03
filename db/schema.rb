@@ -356,11 +356,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_234214) do
     t.text "description"
     t.string "forked_from_id"
     t.integer "prep_time"
+    t.integer "rating"
     t.integer "servings"
     t.string "source"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id", "category"], name: "index_recipes_on_account_id_and_category"
+    t.index ["account_id", "rating"], name: "index_recipes_on_account_id_and_rating"
     t.index ["account_id", "title"], name: "index_recipes_on_account_id_and_title"
     t.index ["account_id"], name: "index_recipes_on_account_id"
     t.index ["forked_from_id"], name: "index_recipes_on_forked_from_id"

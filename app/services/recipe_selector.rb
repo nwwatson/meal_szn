@@ -2,10 +2,11 @@
 
 class RecipeSelector
   SCORE_WEIGHTS = {
-    usage_frequency: 0.30,
-    recency_decay: 0.25,
+    usage_frequency: 0.25,
+    recency_decay: 0.20,
     diet_compatibility: 0.20,
-    category_fit: 0.15,
+    user_rating: 0.15,
+    category_fit: 0.10,
     newness_bonus: 0.10
   }.freeze
 
@@ -40,6 +41,7 @@ class RecipeSelector
       .joins(:nutrition_data)
       .includes(:nutrition_data, :tags)
       .where.not(recipe_nutrition_data: { calories: nil })
+      .where("rating != 1 OR rating IS NULL")
       .to_a
   end
 
@@ -83,6 +85,7 @@ class RecipeSelector
       score += SCORE_WEIGHTS[:usage_frequency] * usage_frequency_score(recipe, usage_counts)
       score += SCORE_WEIGHTS[:recency_decay] * recency_decay_score(recipe, last_used_dates)
       score += SCORE_WEIGHTS[:diet_compatibility] * diet_compatibility_score(recipe, diet_slugs)
+      score += SCORE_WEIGHTS[:user_rating] * user_rating_score(recipe)
       score += SCORE_WEIGHTS[:category_fit] * category_fit_score(recipe)
       score += SCORE_WEIGHTS[:newness_bonus] * newness_score(recipe)
 
@@ -155,6 +158,17 @@ class RecipeSelector
   def category_fit_score(recipe)
     matching_categories = map_meal_types_to_categories
     matching_categories.include?(recipe.category) ? 100.0 : 20.0
+  end
+
+  def user_rating_score(recipe)
+    case recipe.rating
+    when nil then 50.0
+    when 2   then 20.0
+    when 3   then 50.0
+    when 4   then 80.0
+    when 5   then 100.0
+    else 50.0
+    end
   end
 
   def newness_score(recipe)
