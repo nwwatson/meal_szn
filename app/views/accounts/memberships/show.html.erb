@@ -1,0 +1,46 @@
+<% content_for(:title, "Leave Account - MealSzn") %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <%= link_to "&larr; Back to Family".html_safe, members_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
+  </div>
+
+  <h1 class="text-3xl font-display font-bold text-warm-900 mb-2">Leave <%= Current.account.name %></h1>
+  <p class="text-warm-600 mb-6">When you leave, you will lose access to this account's meal plans, dietary profiles, and shared recipes.</p>
+
+  <%= form_with url: membership_path, method: :delete, data: { controller: "recipe-select" } do |f| %>
+    <% if @recipes.any? %>
+      <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-lg font-display font-bold text-warm-800 mb-2">Take recipes with you?</h2>
+        <p class="text-sm text-warm-500 mb-4">Selected recipes will be copied to your new account when you create or join one. The originals stay here.</p>
+
+        <div class="flex items-center gap-4 mb-4 border-b border-warm-100 pb-3">
+          <button type="button" data-action="recipe-select#selectAll" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Select All</button>
+          <button type="button" data-action="recipe-select#selectNone" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Select None</button>
+          <span class="text-sm text-warm-400" data-recipe-select-target="count"><%= @recipes.count %> recipes</span>
+        </div>
+
+        <div class="space-y-2 max-h-96 overflow-y-auto">
+          <% @recipes.each do |recipe| %>
+            <label class="flex items-center gap-3 p-2 rounded hover:bg-warm-50 cursor-pointer">
+              <input type="checkbox" name="recipe_ids[]" value="<%= recipe.id %>" data-recipe-select-target="checkbox" data-action="recipe-select#updateCount" class="rounded border-warm-300 text-primary-600 focus:ring-primary-500">
+              <span class="text-sm text-warm-700"><%= recipe.title %></span>
+              <span class="text-xs text-warm-400"><%= recipe.category.capitalize %></span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <p class="text-sm text-red-700">
+        <strong>This action cannot be undone.</strong> You will be signed out and redirected to create a new account.
+        <% if @recipes.any? %>
+          Any selected recipes will be transferred to your new account.
+        <% end %>
+      </p>
+    </div>
+
+    <%= f.submit "Leave Account", class: "bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 transition-colors font-medium cursor-pointer", data: { turbo_confirm: "Are you sure you want to leave #{Current.account.name}?" } %>
+  <% end %>
+</div>

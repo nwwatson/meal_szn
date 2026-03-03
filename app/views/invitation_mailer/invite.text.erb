@@ -1,0 +1,16 @@
+You're invited to join <%= @account.name %>
+
+<%= @inviter.name %> has invited you to collaborate on meal planning in MealSzn.
+
+As a member, you'll be able to create and share recipes, build meal plans together, and more.
+
+<% if Identity.exists?(email_address: @invitation.email_address) %>
+If you already have recipes in another account, they can be transferred to your new account when you join.
+<% end %>
+
+Accept the invitation: <%= @accept_url %>
+
+This invitation expires in 7 days. If you didn't expect this email, you can safely ignore it.
+
+Thanks,
+The MealSzn Team
