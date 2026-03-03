@@ -1,5 +1,6 @@
 class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationController
   include AiRateLimited
+  include MealPlanSetupable
 
   before_action :require_write_permission!, only: %i[create update destroy generate swap_meal regenerate_day]
   before_action :set_meal_plan, only: %i[show update destroy swap_meal regenerate_day]
@@ -171,23 +172,6 @@ class Accounts::Api::V1::MealPlansController < Accounts::Api::V1::ApplicationCon
     @task = current_account.ai_task_statuses.find(params[:task_id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Task not found" }, status: :not_found
-  end
-
-  def generate_days(plan)
-    (plan.start_date..plan.end_date).each_with_index do |date, index|
-      plan.days.create!(date: date, day_number: index + 1)
-    end
-  end
-
-  def attach_participants(plan, profile_ids)
-    return unless profile_ids.present?
-
-    Array(profile_ids).reject(&:blank?).each do |profile_id|
-      profile = current_account.dietary_profiles.active.find_by(id: profile_id)
-      next unless profile
-
-      plan.participants.create!(dietary_profile: profile)
-    end
   end
 
   def recalculate_portions_for(meal)
