@@ -1,0 +1,44 @@
+<%# locals: (recipe:) %>
+<div data-modal-target="container" class="hidden fixed inset-0 z-50">
+  <div data-modal-target="backdrop" data-action="click->modal#close"
+       class="absolute inset-0 bg-warm-900/50 backdrop-blur-sm transition-opacity duration-200 opacity-0"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div data-modal-target="dialog"
+         class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-200 opacity-0 scale-95">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-display font-bold text-warm-900">Share Recipe</h3>
+          <button data-action="modal#close" class="text-warm-400 hover:text-warm-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <p class="text-sm text-warm-600 mb-4">
+          Share <strong><%= recipe.title %></strong> with someone via email. They'll get a link to preview and add it to their collection.
+        </p>
+
+        <%= form_with url: recipe_shares_path(recipe), method: :post, class: "space-y-4" do |f| %>
+          <div>
+            <label for="recipient_email" class="block text-sm font-medium text-warm-700 mb-1">Recipient's email</label>
+            <input type="email" name="recipient_email" id="recipient_email" required
+                   placeholder="friend@example.com"
+                   class="w-full px-3 py-2 border border-warm-300 rounded-lg text-warm-900 placeholder-warm-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+          </div>
+
+          <div class="flex justify-end gap-2">
+            <button type="button" data-action="modal#close"
+                    class="px-4 py-2 text-sm font-medium text-warm-700 bg-warm-100 rounded-lg hover:bg-warm-200">
+              Cancel
+            </button>
+            <button type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700">
+              Send Invite
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

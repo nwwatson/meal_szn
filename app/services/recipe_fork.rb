@@ -1,11 +1,12 @@
 class RecipeFork
-  def self.call(source_recipe, target_account)
-    new(source_recipe, target_account).call
+  def self.call(source_recipe, target_account, shared_by: nil)
+    new(source_recipe, target_account, shared_by: shared_by).call
   end
 
-  def initialize(source_recipe, target_account)
+  def initialize(source_recipe, target_account, shared_by: nil)
     @source = source_recipe
     @target_account = target_account
+    @shared_by = shared_by
   end
 
   def call
@@ -33,7 +34,8 @@ class RecipeFork
       servings: @source.servings,
       prep_time: @source.prep_time,
       cook_time: @source.cook_time,
-      forked_from: @source
+      forked_from: @source,
+      shared_by: @shared_by
     )
   end
 
@@ -68,6 +70,7 @@ class RecipeFork
       protein: nd.protein,
       carbs: nd.carbs,
       fiber: nd.fiber,
+      net_carbs: nd.net_carbs,
       sodium: nd.sodium,
       potassium: nd.potassium,
       magnesium: nd.magnesium,

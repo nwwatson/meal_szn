@@ -33,6 +33,16 @@ class RecipeForkTest < ActiveSupport::TestCase
     assert_includes @source.forks, forked
   end
 
+  test "sets shared_by when provided" do
+    forked = RecipeFork.call(@source, @target_account, shared_by: "Alice")
+    assert_equal "Alice", forked.shared_by
+  end
+
+  test "shared_by is nil when not provided" do
+    forked = RecipeFork.call(@source, @target_account)
+    assert_nil forked.shared_by
+  end
+
   test "copies all ingredients" do
     forked = RecipeFork.call(@source, @target_account)
 

@@ -52,6 +52,7 @@ Two mechanisms for joining an account: **join codes** (shareable `Account::JoinC
 - `/join`, `/join/:code` — join an account via code (public, requires auth)
 - `/invitations/:token/accept` — accept email invitation (public, requires auth)
 - `/identity/*` — access token and session management
+- `/recipes/shared/:token` — public recipe share preview/accept/decline
 - `/:account_id/*` — all account-scoped routes (dashboard, recipes, API)
 - `/:account_id/members` — Family hub (members, join code, dietary profiles)
 - `/:account_id/membership` — leave account flow
@@ -66,12 +67,28 @@ All primary keys are string UUIDs. Key models:
 - `PendingRecipeTransfer` — tracks recipes selected for transfer between accounts
 - `Recipe` → `RecipeIngredient`, `RecipeInstruction`, `RecipeNutritionData`, `RecipeTip` (nested attributes). Has optional `rating` (1–5 integer, nil = unrated) and `forked_from_id` for recipe lineage tracking.
 - `MealPlan` → `MealPlanDay` → `MealPlanMeal` → `Recipe` (hierarchical, with servings and daily calorie targets)
+- `RecipeShare` — token-based recipe sharing (pending/accepted/declined status, 30-day expiry)
 - `Access` — polymorphic resource-level permissions
 - `MagicLink`, `Session`, `AccessToken` — auth infrastructure
 
 ### Pagination
 
 Uses Pagy gem (`config/initializers/pagy.rb`) with `pagy_countless` for "Load More" UX (no total count query). Default 12 items per page. `Pagy::Backend` included in `ApplicationController`, `Pagy::Frontend` in `ApplicationHelper`.
+
+### Recipe Sharing
+
+Token-based recipe sharing via email. Users share recipes by entering a recipient email; the system generates a `RecipeShare` with a unique token (24 chars, 30-day expiry) and sends an email with a public share link.
+
+**Flow:** Sender creates share → `RecipeShareMailer` sends invitation email → recipient visits `/recipes/shared/:token` (public, no auth required) → sees recipe preview → clicks "Add to My Recipes" → redirected to sign-in if unauthenticated → `RecipeFork` deep-copies recipe to recipient's account → share marked accepted.
+
+**Key components:**
+- `RecipeShare` model — token, status enum (pending/accepted/declined), 30-day expiry, sender/recipient tracking
+- `RecipeFork` service — deep-copies recipe between accounts (ingredients, instructions, nutrition, tips, tags, attachments). Sets `forked_from` association and optional `shared_by` attribution.
+- `RecipeSharesController` (public) — requires BOTH `allow_unauthenticated_access` AND `allow_unauthorized_access` plus `disallow_account_scope` for controllers outside `/:account_id` URL pattern
+- `Accounts::RecipeSharesController` — account-scoped, creates shares and lists share status
+- New user flow: stores `pending_share_token` in session → processed after signup in `Signups::CompletionsController`
+
+**Testing notes:** UUID PKs mean `Recipe.last` is unreliable — use `Recipe.order(created_at: :desc).first`. Worktrees lack compiled CSS assets, so controller tests rendering full HTML may need `rescue ActionView::Template::Error` blocks.
 
 ### Caching Strategy
 

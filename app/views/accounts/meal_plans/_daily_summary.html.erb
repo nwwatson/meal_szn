@@ -1,10 +1,9 @@
 <%# locals: (day:, daily_calories_target:) %>
 <%
-  # Sum per-serving nutrition (1 serving per meal, ignoring meal.servings)
-  total_cal = day.meals.sum { |m| m.recipe.nutrition_data&.calories.to_i }
-  total_fat = day.meals.sum { |m| m.recipe.nutrition_data&.fat.to_f }.round(1)
-  total_protein = day.meals.sum { |m| m.recipe.nutrition_data&.protein.to_f }.round(1)
-  total_carbs = day.meals.sum { |m| m.recipe.nutrition_data&.net_carbs.to_f }.round(1)
+  total_cal = day.total_calories
+  total_fat = day.total_fat
+  total_protein = day.total_protein
+  total_carbs = day.total_net_carbs
   status = calorie_status(total_cal, daily_calories_target)
 %>
 <div class="flex flex-wrap items-center gap-3 text-sm">

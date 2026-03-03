@@ -1,0 +1,80 @@
+<% content_for(:title, "#{@recipe.title} - Shared Recipe") %>
+
+<% content_for(:hero_content) do %>
+  <li class="flex items-start gap-3 text-primary-100/90">
+    <span class="text-accent-300 mt-0.5 text-lg">&#10022;</span>
+    <span><strong><%= @recipe_share.sender_name %></strong> wants to share a recipe with you</span>
+  </li>
+  <li class="flex items-start gap-3 text-primary-100/90">
+    <span class="text-accent-300 mt-0.5 text-lg">&#10022;</span>
+    <span>Add it to your collection with one click</span>
+  </li>
+  <li class="flex items-start gap-3 text-primary-100/90">
+    <span class="text-accent-300 mt-0.5 text-lg">&#10022;</span>
+    <span>All ingredients, instructions, and nutrition included</span>
+  </li>
+<% end %>
+
+<h2 class="font-display font-bold text-2xl text-warm-900 mb-1"><%= @recipe.title %></h2>
+<p class="text-sm text-warm-500 mb-4">
+  <%= @recipe.category.titleize %><%= " · #{@recipe.total_time} min" if @recipe.total_time > 0 %><%= " · #{@recipe.servings} servings" if @recipe.servings %>
+</p>
+
+<% if @recipe.description.present? %>
+  <p class="text-warm-600 text-sm mb-4 leading-relaxed"><%= truncate(@recipe.description, length: 300) %></p>
+<% end %>
+
+<% if @recipe.ingredients.any? %>
+  <div class="mb-4">
+    <h3 class="text-xs font-semibold text-warm-500 uppercase tracking-wider mb-2">Ingredients</h3>
+    <ul class="text-sm text-warm-700 space-y-1">
+      <% @recipe.ingredients.limit(8).each do |ingredient| %>
+        <li class="flex items-center">
+          <span class="w-1.5 h-1.5 bg-primary-400 rounded-full mr-2 flex-shrink-0"></span>
+          <%= ingredient.display_text %>
+        </li>
+      <% end %>
+      <% if @recipe.ingredients.count > 8 %>
+        <li class="text-warm-400 text-xs">+ <%= @recipe.ingredients.count - 8 %> more ingredients</li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<% if @recipe.nutrition_data %>
+  <div class="bg-warm-50 rounded-lg p-3 mb-6">
+    <div class="grid grid-cols-4 gap-2 text-center text-xs">
+      <div>
+        <span class="block font-bold text-warm-900"><%= @recipe.nutrition_data.calories %></span>
+        <span class="text-warm-500">Cal</span>
+      </div>
+      <div>
+        <span class="block font-bold text-warm-900"><%= @recipe.nutrition_data.fat %>g</span>
+        <span class="text-warm-500">Fat</span>
+      </div>
+      <div>
+        <span class="block font-bold text-warm-900"><%= @recipe.nutrition_data.protein %>g</span>
+        <span class="text-warm-500">Protein</span>
+      </div>
+      <div>
+        <span class="block font-bold text-warm-900"><%= @recipe.nutrition_data.net_carbs %>g</span>
+        <span class="text-warm-500">Carbs</span>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<div class="space-y-3">
+  <%= button_to "Add to My Recipes", accept_recipe_share_path(token: @recipe_share.token),
+        method: :post,
+        class: "w-full py-3 px-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors text-center" %>
+
+  <%= button_to "No Thanks", decline_recipe_share_path(token: @recipe_share.token),
+        method: :post,
+        class: "w-full py-2 px-4 text-warm-500 hover:text-warm-700 text-sm text-center",
+        data: { turbo_confirm: "Are you sure you want to decline this recipe?" } %>
+</div>
+
+<p class="text-xs text-warm-400 text-center mt-4">
+  This link expires <%= distance_of_time_in_words_to_now(@recipe_share.expires_at) %> from now.
+</p>
