@@ -176,6 +176,21 @@ class Accounts::MealPlansControllerTest < ActionDispatch::IntegrationTest
     assert_select ".tabular-nums"
   end
 
+  test "daily summary accounts for meal servings in nutrition totals" do
+    sign_in_as(@session)
+    get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
+    assert_response :success
+
+    day = @meal_plan.days.find_by(day_number: 1)
+    # breakfast: eggs 1x320 + dinner: salmon 1.5x450 = 320 + 675 = 995
+    expected_calories = day.total_calories
+    assert_equal 995, expected_calories
+
+    # Verify the view renders the servings-adjusted total, not the raw sum (770)
+    assert_select "text", { text: /770/, count: 0 }
+    assert_match(/995/, response.body)
+  end
+
   test "show renders recipe links to nested meal plan recipe path" do
     sign_in_as(@session)
     get "#{account_path_prefix}/meal_plans/#{@meal_plan.id}"
