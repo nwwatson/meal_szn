@@ -15,7 +15,7 @@ module AiRateLimited
   private
 
   def check_ai_rate_limit!(feature, redirect_path: nil)
-    account = respond_to?(:current_account, true) ? current_account : Current.account
+    account = Current.account
     return unless account
 
     limiter = Ai::RateLimiter.new(account)
@@ -40,7 +40,7 @@ module AiRateLimited
   end
 
   def ai_rate_limiter
-    account = respond_to?(:current_account, true) ? current_account : Current.account
+    account = Current.account
     @ai_rate_limiter ||= Ai::RateLimiter.new(account)
   end
 

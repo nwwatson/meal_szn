@@ -64,6 +64,19 @@ class MealPlanTest < ActiveSupport::TestCase
     assert_equal 0, plan.average_daily_calories
   end
 
+  test "to_api_summary includes summary fields without days" do
+    plan = meal_plans(:one)
+    summary = plan.to_api_summary
+    assert_equal plan.id, summary[:id]
+    assert_equal plan.name, summary[:name]
+    assert_equal plan.start_date, summary[:start_date]
+    assert_equal plan.end_date, summary[:end_date]
+    assert_equal 7, summary[:duration_days]
+    assert_equal plan.daily_calories_target, summary[:daily_calories_target]
+    assert summary[:average_daily_calories].is_a?(Integer)
+    assert_nil summary[:days]
+  end
+
   test "to_api_response includes all fields" do
     plan = meal_plans(:one)
     response = plan.to_api_response

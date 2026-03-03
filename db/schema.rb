@@ -173,6 +173,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_182956) do
     t.index ["recipe_id"], name: "index_ingredients_on_recipe_id"
   end
 
+  create_table "invitations", id: :string, force: :cascade do |t|
+    t.datetime "accepted_at"
+    t.string "account_id", null: false
+    t.datetime "created_at", null: false
+    t.string "email_address", null: false
+    t.datetime "expires_at", null: false
+    t.string "invited_by_id", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "email_address"], name: "index_invitations_on_account_id_and_email_address"
+    t.index ["account_id"], name: "index_invitations_on_account_id"
+    t.index ["token"], name: "index_invitations_on_token", unique: true
+  end
+
   create_table "magic_links", id: :string, force: :cascade do |t|
     t.string "code", null: false
     t.datetime "created_at", null: false
@@ -279,6 +293,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_182956) do
     t.integer "sodium"
     t.datetime "updated_at", null: false
     t.index ["fdc_id"], name: "index_nutrition_items_on_fdc_id", unique: true
+  end
+
+  create_table "pending_recipe_transfers", id: :string, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "identity_id", null: false
+    t.string "source_recipe_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identity_id", "source_recipe_id"], name: "idx_on_identity_id_source_recipe_id_d424db4ece", unique: true
+    t.index ["identity_id"], name: "index_pending_recipe_transfers_on_identity_id"
   end
 
   create_table "recipe_instructions", id: :string, force: :cascade do |t|

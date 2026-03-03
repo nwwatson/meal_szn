@@ -2,17 +2,19 @@ require "test_helper"
 
 class RecipeForkTest < ActiveSupport::TestCase
   setup do
-    @source = recipes(:one)
+    @source = recipes(:one) # salmon recipe - has ingredients, instructions, nutrition, tips, tags
     @target_account = accounts(:two)
   end
 
   test "creates a new recipe in the target account" do
-    assert_difference -> { @target_account.recipes.count } do
-      RecipeFork.call(@source, @target_account)
-    end
+    forked = RecipeFork.call(@source, @target_account)
+
+    assert forked.persisted?
+    assert_equal @target_account, forked.account
+    assert_not_equal @source.id, forked.id
   end
 
-  test "copies recipe attributes" do
+  test "copies basic recipe attributes" do
     forked = RecipeFork.call(@source, @target_account)
 
     assert_equal @source.title, forked.title
@@ -22,12 +24,13 @@ class RecipeForkTest < ActiveSupport::TestCase
     assert_equal @source.servings, forked.servings
     assert_equal @source.prep_time, forked.prep_time
     assert_equal @source.cook_time, forked.cook_time
-    assert_equal @target_account, forked.account
   end
 
   test "sets forked_from to source recipe" do
     forked = RecipeFork.call(@source, @target_account)
+
     assert_equal @source, forked.forked_from
+    assert_includes @source.forks, forked
   end
 
   test "sets shared_by when provided" do
@@ -40,48 +43,102 @@ class RecipeForkTest < ActiveSupport::TestCase
     assert_nil forked.shared_by
   end
 
-  test "copies ingredients" do
+  test "copies all ingredients" do
     forked = RecipeFork.call(@source, @target_account)
-    assert_equal @source.ingredients.count, forked.ingredients.count
 
-    @source.ingredients.each_with_index do |src_ingredient, i|
-      forked_ingredient = forked.ingredients[i]
-      assert_equal src_ingredient.name, forked_ingredient.name
-      assert_equal src_ingredient.quantity, forked_ingredient.quantity
-      assert_equal src_ingredient.unit, forked_ingredient.unit
+    assert_equal @source.ingredients.count, forked.ingredients.count
+    @source.ingredients.each do |ingredient|
+      matching = forked.ingredients.find_by(name: ingredient.name)
+      assert matching, "Expected ingredient '#{ingredient.name}' to be forked"
+      assert_equal ingredient.quantity, matching.quantity
+      assert_equal ingredient.unit, matching.unit
+      assert_equal ingredient.display_order, matching.display_order
     end
   end
 
-  test "copies instructions" do
+  test "copies all instructions" do
     forked = RecipeFork.call(@source, @target_account)
+
     assert_equal @source.instructions.count, forked.instructions.count
+    @source.instructions.each do |instruction|
+      matching = forked.instructions.find_by(step_number: instruction.step_number)
+      assert matching, "Expected instruction step #{instruction.step_number} to be forked"
+      assert_equal instruction.instruction, matching.instruction
+    end
   end
 
   test "copies nutrition data" do
     forked = RecipeFork.call(@source, @target_account)
-    if @source.nutrition_data
-      assert forked.nutrition_data.present?
-      assert_equal @source.nutrition_data.calories, forked.nutrition_data.calories
-    end
+
+    assert forked.nutrition_data.present?
+    assert_equal @source.nutrition_data.calories, forked.nutrition_data.calories
+    assert_equal @source.nutrition_data.fat, forked.nutrition_data.fat
+    assert_equal @source.nutrition_data.protein, forked.nutrition_data.protein
+    assert_equal @source.nutrition_data.carbs, forked.nutrition_data.carbs
   end
 
   test "copies tips" do
     forked = RecipeFork.call(@source, @target_account)
+
     assert_equal @source.tips.count, forked.tips.count
+    @source.tips.each do |tip|
+      assert forked.tips.find_by(tip: tip.tip), "Expected tip to be forked"
+    end
   end
 
-  test "copies tags to target account" do
-    # Add a tag to source recipe first
-    tag = @source.account.tags.create!(name: "test-tag")
-    @source.tags << tag
-
+  test "creates tags in target account" do
     forked = RecipeFork.call(@source, @target_account)
 
-    # Source tags should be present in the fork
-    assert_includes forked.tags.reload.pluck(:name), "test-tag"
+    # All source tags should be present in forked recipe
+    # (additional diet tags may be added by the categorizer callback)
+    @source.tags.each do |tag|
+      target_tag = @target_account.tags.find_by(name: tag.name)
+      assert target_tag, "Expected tag '#{tag.name}' to exist in target account"
+      assert_includes forked.tags, target_tag
+    end
+    assert forked.tags.count >= @source.tags.count
+  end
 
-    # Forked tags belong to target account
-    forked_tag = forked.tags.find_by(name: "test-tag")
-    assert_equal @target_account.id, forked_tag.account_id
+  test "handles recipe without nutrition data" do
+    source = recipes(:side_dish)
+    # Ensure no nutrition data so the nil path is tested
+    source.nutrition_data&.destroy
+    source.reload
+
+    forked = RecipeFork.call(source, @target_account)
+
+    assert forked.persisted?
+    assert_nil forked.nutrition_data
+  end
+
+  test "handles recipe without manually added tags" do
+    source = recipes(:side_dish)
+    source_manual_tags = source.tags.where.not("name LIKE ?", "diet:%")
+
+    forked = RecipeFork.call(source, @target_account)
+
+    assert forked.persisted?
+    # No manually-added tags to fork, but diet tags may be added by categorizer callback
+    forked_manual_tags = forked.tags.where.not("name LIKE ?", "diet:%")
+    assert_equal source_manual_tags.count, forked_manual_tags.count
+  end
+
+  test "does not modify source recipe" do
+    original_title = @source.title
+    original_ingredient_count = @source.ingredients.count
+
+    RecipeFork.call(@source, @target_account)
+
+    @source.reload
+    assert_equal original_title, @source.title
+    assert_equal original_ingredient_count, @source.ingredients.count
+  end
+
+  test "child records have different IDs from source" do
+    forked = RecipeFork.call(@source, @target_account)
+
+    forked.ingredients.each do |ingredient|
+      assert_not_includes @source.ingredients.pluck(:id), ingredient.id
+    end
   end
 end

@@ -17,9 +17,10 @@ class RecipeFork
       fork_nutrition_data
       fork_tips
       fork_tags
-      fork_attachments
-      @forked
+      share_attachments
     end
+
+    @forked
   end
 
   private
@@ -87,15 +88,20 @@ class RecipeFork
   def fork_tags
     @source.tags.each do |tag|
       target_tag = @target_account.tags.find_or_create_by!(name: tag.name)
-      @forked.tags << target_tag unless @forked.tags.include?(target_tag)
+      @forked.recipe_tags.create!(tag: target_tag)
     end
   end
 
-  def fork_attachments
-    if @source.image.attached?
-      @forked.image.attach(@source.image.blob)
-    end
+  def share_attachments
+    share_single_attachment if @source.image.attached?
+    share_gallery_attachments if @source.images.attached?
+  end
 
+  def share_single_attachment
+    @forked.image.attach(@source.image.blob)
+  end
+
+  def share_gallery_attachments
     @source.images.each do |img|
       @forked.images.attach(img.blob)
     end

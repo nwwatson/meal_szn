@@ -4,11 +4,19 @@ export default class extends Controller {
   static targets = ["source", "button", "feedback"]
 
   async copy() {
+    // If source has data-item-text children, collect those lines (shopping list mode)
     const items = this.sourceTarget.querySelectorAll("[data-item-text]")
-    const lines = Array.from(items).map(el => el.textContent.trim())
-    const text = lines.join("\n")
+    let text
 
-    if (lines.length === 0) return
+    if (items.length > 0) {
+      const lines = Array.from(items).map(el => el.textContent.trim())
+      if (lines.length === 0) return
+      text = lines.join("\n")
+    } else {
+      // Otherwise copy the source element's text content directly
+      text = this.sourceTarget.textContent.trim()
+      if (!text) return
+    }
 
     try {
       await navigator.clipboard.writeText(text)
@@ -28,16 +36,11 @@ export default class extends Controller {
   }
 
   showFeedback() {
-    this.feedbackTarget.classList.remove("hidden")
-    this.feedbackTarget.classList.add("opacity-100")
+    const original = this.feedbackTarget.textContent
+    this.feedbackTarget.textContent = "Copied!"
 
     setTimeout(() => {
-      this.feedbackTarget.classList.remove("opacity-100")
-      this.feedbackTarget.classList.add("opacity-0")
-      setTimeout(() => {
-        this.feedbackTarget.classList.add("hidden")
-        this.feedbackTarget.classList.remove("opacity-0")
-      }, 300)
+      this.feedbackTarget.textContent = original
     }, 1500)
   }
 }

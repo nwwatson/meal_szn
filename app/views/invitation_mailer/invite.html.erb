@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+</head>
+<body>
+  <h1>You're invited to join <%= @account.name %></h1>
+
+  <p><%= @inviter.name %> has invited you to collaborate on meal planning in MealSzn.</p>
+
+  <p>As a member, you'll be able to create and share recipes, build meal plans together, and more.</p>
+
+  <% if Identity.exists?(email_address: @invitation.email_address) %>
+    <p style="font-size: 14px; color: #666;">If you already have recipes in another account, they can be transferred to your new account when you join.</p>
+  <% end %>
+
+  <p>
+    <a href="<%= @accept_url %>" style="display: inline-block; padding: 12px 24px; background-color: #C05621; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold;">
+      Accept Invitation
+    </a>
+  </p>
+
+  <p style="font-size: 14px; color: #666;">This invitation expires in 7 days. If you didn't expect this email, you can safely ignore it.</p>
+
+  <p>Thanks,<br>The MealSzn Team</p>
+</body>
+</html>

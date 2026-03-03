@@ -82,4 +82,17 @@ class DietaryProfileTest < ActiveSupport::TestCase
   test "linked_to_user? returns false when user_id nil" do
     assert_not dietary_profiles(:kid).linked_to_user?
   end
+
+  test "to_api_response includes all fields" do
+    response = @profile.to_api_response
+    assert_equal @profile.id, response[:id]
+    assert_equal @profile.name, response[:name]
+    assert_equal @profile.diet_name, response[:diet_name]
+    assert_equal @profile.daily_calories_target, response[:daily_calories_target]
+    assert response[:macro_targets].is_a?(Hash)
+    assert_equal @profile.user_id, response[:user_id]
+    assert_equal true, response[:active]
+    assert response[:created_at].present?
+    assert response[:updated_at].present?
+  end
 end

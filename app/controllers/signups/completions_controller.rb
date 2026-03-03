@@ -18,8 +18,18 @@ class Signups::CompletionsController < ApplicationController
     )
 
     if (account = @signup.complete)
+      # Transfer any pending recipes from a previous account
+      transferred = PendingRecipeTransfer.execute_for(Current.identity, account)
+
+      # Process any pending recipe share from an invitation link
       process_pending_recipe_share(account)
-      redirect_to "/#{account.external_account_id}", notice: "Welcome to your new account!"
+
+      notice = if transferred.any?
+        "Welcome to your new account! #{transferred.count} recipe(s) have been transferred."
+      else
+        "Welcome to your new account!"
+      end
+      redirect_to "/#{account.external_account_id}", notice: notice
     else
       flash.now[:alert] = @signup.errors.full_messages.to_sentence
       render :new, status: :unprocessable_entity

@@ -60,7 +60,7 @@ class Signup
     return unless identity
     return unless Account.multi_tenant  # Only check in multi-tenant mode
 
-    if identity.accounts.exists?
+    if identity.users.where(active: true).exists?
       errors.add(:base, "You already have an account. Please sign in instead.")
     end
   end

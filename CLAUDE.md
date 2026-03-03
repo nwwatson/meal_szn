@@ -34,12 +34,28 @@ Core concerns in `app/controllers/concerns/`:
 
 `Current` (`app/models/current.rb`) is the thread-safe context holder for session/identity/user/account.
 
+### Invitation & Member Management
+
+Two mechanisms for joining an account: **join codes** (shareable `Account::JoinCode`, 12-char base58 formatted as `XXXX-XXXX-XXXX`) and **email invitations** (`Invitation` model with 7-day expiry token). Both create users with `member` role.
+
+**Single-account enforcement:** A user can only belong to one account at a time. On join, existing active memberships are deactivated.
+
+**Leave flow:** Members can voluntarily leave via `/:account_id/membership`. They can select recipes to take — these create `PendingRecipeTransfer` records tied to the identity. On joining/creating a new account, transfers are executed via `RecipeFork` (deep copy with shared Active Storage blobs). Owners cannot leave.
+
+**Recipe forking:** `RecipeFork` service (`app/services/recipe_fork.rb`) deep-copies a recipe to a target account: duplicates all child records (ingredients, instructions, nutrition, tips), finds-or-creates matching tags, shares Active Storage blobs (zero file duplication). Sets `forked_from_id` for lineage tracking.
+
+**Family hub:** The "Family" nav item points to `/:account_id/members` which combines member management, join code display, email invitations, and dietary profiles in one page.
+
 ### Routing Structure
 
 - `/session`, `/signup`, `/onboarding` — public auth routes
+- `/join`, `/join/:code` — join an account via code (public, requires auth)
+- `/invitations/:token/accept` — accept email invitation (public, requires auth)
 - `/identity/*` — access token and session management
 - `/recipes/shared/:token` — public recipe share preview/accept/decline
 - `/:account_id/*` — all account-scoped routes (dashboard, recipes, API)
+- `/:account_id/members` — Family hub (members, join code, dietary profiles)
+- `/:account_id/membership` — leave account flow
 - `/:account_id/api/v1/*` — JSON API (recipes, meal plans, meal planning)
 
 ### Domain Models
@@ -47,7 +63,9 @@ Core concerns in `app/controllers/concerns/`:
 All primary keys are string UUIDs. Key models:
 
 - `Account` → `User` (membership with role) → `Identity` (global email identity)
-- `Recipe` → `RecipeIngredient`, `RecipeInstruction`, `RecipeNutritionData`, `RecipeTip` (nested attributes). Has optional `rating` (1–5 integer, nil = unrated) used for filtering, sorting, and AI meal plan generation.
+- `Invitation` — email-based account invitations (token, expiry, acceptance tracking)
+- `PendingRecipeTransfer` — tracks recipes selected for transfer between accounts
+- `Recipe` → `RecipeIngredient`, `RecipeInstruction`, `RecipeNutritionData`, `RecipeTip` (nested attributes). Has optional `rating` (1–5 integer, nil = unrated) and `forked_from_id` for recipe lineage tracking.
 - `MealPlan` → `MealPlanDay` → `MealPlanMeal` → `Recipe` (hierarchical, with servings and daily calorie targets)
 - `RecipeShare` — token-based recipe sharing (pending/accepted/declined status, 30-day expiry)
 - `Access` — polymorphic resource-level permissions
@@ -94,7 +112,11 @@ Pagination uses lazy Turbo Frames: each page renders a `turbo_frame_tag` for the
 
 ### API
 
-Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionController::API` (no views). Recipes expose `to_api_response` and `to_meal_planning_response` serialization methods directly on the model.
+Controllers under `app/controllers/accounts/api/v1/` inherit from `ActionController::API` (no views).
+
+**Account access convention:** Use `Current.account` everywhere (both web and API controllers). The API base controller sets `Current.account` from the request middleware and provides `current_account` as a convenience alias. Shared concerns like `AiRateLimited` use `Current.account` directly.
+
+**Serialization convention:** All API responses use model serialization methods — never build response hashes inline in controllers. Models that serve API responses define `to_api_response` (full representation) and optionally `to_api_summary` (lightweight, e.g., for index listings). Current models with serialization methods: `Recipe`, `RecipeInstruction`, `RecipeNutritionData`, `Ingredient`, `MealPlan` (also `to_api_summary`), `MealPlanDay`, `MealPlanMeal`, `ShoppingList`, `ShoppingListItem`, `DietaryProfile`. Recipe also has `to_meal_planning_response` for the meal planning API.
 
 **Recipe Import API** — async import endpoints on the recipes controller:
 - `POST /:account_id/api/v1/recipes/import_url` — accepts `{ url }`, returns `{ task_id, status }`

@@ -6,10 +6,7 @@ class Accounts::Api::V1::ShoppingListItemsController < Accounts::Api::V1::Applic
   def toggle
     @item.update!(checked: !@item.checked)
 
-    render json: {
-      id: @item.id,
-      checked: @item.checked
-    }
+    render json: @item.to_api_response
   end
 
   private

@@ -1,0 +1,8 @@
+<% now = Time.current.to_fs(:db) %>
+
+transfer_salmon:
+  id: transfer_salmon_id
+  identity_id: id_test_user_two
+  source_recipe_id: recipe_salmon
+  created_at: <%= now %>
+  updated_at: <%= now %>

@@ -20,9 +20,9 @@ class Accounts::Api::V1::ApplicationController < ActionController::API
   end
 
   def set_account_from_request
-    @current_account = request.env["meal_szn.account"]
+    Current.account = request.env["meal_szn.account"]
 
-    unless @current_account
+    unless Current.account
       render json: { error: "Account not found" }, status: :not_found
     end
   end
@@ -34,6 +34,6 @@ class Accounts::Api::V1::ApplicationController < ActionController::API
   end
 
   def current_account
-    @current_account
+    Current.account
   end
 end

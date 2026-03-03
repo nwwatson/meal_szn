@@ -5,6 +5,8 @@ class Recipe < ApplicationRecord
   MAX_IMAGE_SIZE = 10.megabytes
 
   belongs_to :account
+  belongs_to :forked_from, class_name: "Recipe", optional: true
+  has_many :forks, class_name: "Recipe", foreign_key: :forked_from_id, dependent: :nullify
   has_one_attached :image do |attachable|
     attachable.variant :thumbnail, resize_to_fill: [ 200, 200 ]
     attachable.variant :card, resize_to_fill: [ 400, 300 ]

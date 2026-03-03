@@ -16,4 +16,15 @@ class ShoppingListItem < ApplicationRecord
     parts << name
     parts.join(" ")
   end
+
+  def to_api_response
+    {
+      id: id,
+      name: name,
+      quantity: quantity,
+      unit: unit,
+      checked: checked,
+      display_text: display_text
+    }
+  end
 end
