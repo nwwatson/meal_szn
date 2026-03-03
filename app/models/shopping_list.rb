@@ -17,4 +17,18 @@ class ShoppingList < ApplicationRecord
   def total_count
     items.count
   end
+
+  def to_api_response
+    {
+      id: id,
+      name: name,
+      meal_plan_id: meal_plan_id,
+      checked_count: checked_count,
+      total_count: total_count,
+      all_checked: all_checked?,
+      items: items.alphabetical.map(&:to_api_response),
+      created_at: created_at,
+      updated_at: updated_at
+    }
+  end
 end

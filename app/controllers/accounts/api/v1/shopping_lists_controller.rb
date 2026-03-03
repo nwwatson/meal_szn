@@ -12,14 +12,14 @@ class Accounts::Api::V1::ShoppingListsController < Accounts::Api::V1::Applicatio
       return
     end
 
-    render json: { shopping_list: shopping_list_response(shopping_list) }
+    render json: { shopping_list: shopping_list.to_api_response }
   end
 
   # POST /api/v1/meal_plans/:meal_plan_id/shopping_list
   def create
     shopping_list = ShoppingListGenerator.new(@meal_plan, user: @user).generate
 
-    render json: { shopping_list: shopping_list_response(shopping_list) }, status: :created
+    render json: { shopping_list: shopping_list.to_api_response }, status: :created
   end
 
   private
@@ -36,30 +36,5 @@ class Accounts::Api::V1::ShoppingListsController < Accounts::Api::V1::Applicatio
     unless @user
       render json: { error: "User not found in this account" }, status: :forbidden
     end
-  end
-
-  def shopping_list_response(list)
-    {
-      id: list.id,
-      name: list.name,
-      meal_plan_id: list.meal_plan_id,
-      checked_count: list.checked_count,
-      total_count: list.total_count,
-      all_checked: list.all_checked?,
-      items: list.items.alphabetical.map { |item| item_response(item) },
-      created_at: list.created_at,
-      updated_at: list.updated_at
-    }
-  end
-
-  def item_response(item)
-    {
-      id: item.id,
-      name: item.name,
-      quantity: item.quantity,
-      unit: item.unit,
-      checked: item.checked,
-      display_text: item.display_text
-    }
   end
 end

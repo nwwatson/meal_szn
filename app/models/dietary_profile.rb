@@ -21,4 +21,18 @@ class DietaryProfile < ApplicationRecord
   def linked_to_user?
     user_id.present?
   end
+
+  def to_api_response
+    {
+      id: id,
+      name: name,
+      diet_name: diet_name,
+      daily_calories_target: daily_calories_target,
+      macro_targets: macro_targets,
+      user_id: user_id,
+      active: active,
+      created_at: created_at,
+      updated_at: updated_at
+    }
+  end
 end
