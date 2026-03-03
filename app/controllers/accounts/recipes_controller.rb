@@ -1,5 +1,6 @@
 class Accounts::RecipesController < ApplicationController
   include AiRateLimited
+  include RecipeParamsPermittable
 
   before_action :set_recipe, only: %i[show edit update destroy resolve_ingredients apply_resolution rate]
   before_action :set_unit_options, only: %i[new edit create update resolve_ingredients]
@@ -389,24 +390,6 @@ class Accounts::RecipesController < ApplicationController
   end
 
   def recipe_params
-    params.require(:recipe).permit(
-      :title,
-      :description,
-      :category,
-      :source,
-      :servings,
-      :prep_time,
-      :cook_time,
-      :rating,
-      :image,
-      images: [],
-      ingredients_attributes: %i[id name quantity unit display_order _destroy],
-      instructions_attributes: %i[id step_number instruction _destroy],
-      nutrition_data_attributes: %i[
-        id calories fat protein carbs fiber
-        sodium potassium magnesium _destroy
-      ],
-      tips_attributes: %i[id tip _destroy]
-    )
+    permitted_recipe_params(:image, images: [])
   end
 end

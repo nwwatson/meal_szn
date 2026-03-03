@@ -2,6 +2,8 @@
 
 module RecipeImport
   class PhotoExtractor
+    include RecipeImport::Normalizer
+
     SYSTEM_PROMPT = <<~PROMPT
       You are a recipe extraction assistant. Given one or more photos of a recipe
       (cookbook page, handwritten card, screenshot, etc.), extract the recipe information
@@ -75,31 +77,6 @@ module RecipeImport
 
     def valid_blob?(blob)
       SUPPORTED_CONTENT_TYPES.include?(blob.content_type) && blob.byte_size <= MAX_IMAGE_SIZE
-    end
-
-    def normalize(input)
-      instructions = (input["instructions"] || []).map.with_index(1) do |text, i|
-        { step_number: i, instruction: text }
-      end
-
-      nutrition = {
-        calories: input["calories"],
-        fat: input["fat"],
-        protein: input["protein"],
-        carbs: input["carbs"],
-        fiber: input["fiber"]
-      }.compact.presence
-
-      {
-        title: input["title"],
-        description: input["description"],
-        servings: input["servings"],
-        prep_time: input["prep_time"],
-        cook_time: input["cook_time"],
-        ingredients: input["ingredients"] || [],
-        instructions: instructions,
-        nutrition: nutrition
-      }.compact
     end
   end
 end
