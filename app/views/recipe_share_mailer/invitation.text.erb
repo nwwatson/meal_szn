@@ -1,0 +1,14 @@
+<%= @sender.name %> shared a recipe with you on MealSzn!
+
+<%= @recipe.title %>
+<%= @recipe.category.titleize %><%= " · #{@recipe.total_time} min" if @recipe.total_time > 0 %><%= " · #{@recipe.servings} servings" if @recipe.servings %>
+
+<% if @recipe.description.present? -%>
+<%= truncate(@recipe.description, length: 200) %>
+
+<% end -%>
+View and add to your collection: <%= @share_url %>
+
+This link expires in 30 days. If you didn't expect this email, you can safely ignore it.
+
+— The MealSzn Team

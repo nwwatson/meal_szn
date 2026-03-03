@@ -1,7 +1,8 @@
 <% content_for(:title, "#{@recipe.title} - MealSzn") %>
 
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
-  <% if @meal_plans&.any? %>data-controller="add-to-meal-plan" data-add-to-meal-plan-recipe-id-value="<%= @recipe.id %>" data-add-to-meal-plan-base-url-value="/<%= Current.account.external_account_id %>"<% end %>>
+  data-controller="modal<%= ' add-to-meal-plan' if @meal_plans&.any? %>"
+  <% if @meal_plans&.any? %>data-add-to-meal-plan-recipe-id-value="<%= @recipe.id %>" data-add-to-meal-plan-base-url-value="/<%= Current.account.external_account_id %>"<% end %>>
   <div class="mb-6">
     <%= link_to "&larr; Back to Recipes".html_safe, recipes_path, class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
   </div>
@@ -11,4 +12,6 @@
   <% if @meal_plans&.any? %>
     <%= render "accounts/meal_plans/add_to_meal_plan_modal", recipe: @recipe, meal_plans: @meal_plans %>
   <% end %>
+
+  <%= render "accounts/recipes/share_modal", recipe: @recipe %>
 </div>
