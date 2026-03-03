@@ -38,6 +38,7 @@ Core concerns in `app/controllers/concerns/`:
 
 - `/session`, `/signup`, `/onboarding` — public auth routes
 - `/identity/*` — access token and session management
+- `/recipes/shared/:token` — public recipe share preview/accept/decline
 - `/:account_id/*` — all account-scoped routes (dashboard, recipes, API)
 - `/:account_id/api/v1/*` — JSON API (recipes, meal plans, meal planning)
 
@@ -48,12 +49,28 @@ All primary keys are string UUIDs. Key models:
 - `Account` → `User` (membership with role) → `Identity` (global email identity)
 - `Recipe` → `RecipeIngredient`, `RecipeInstruction`, `RecipeNutritionData`, `RecipeTip` (nested attributes). Has optional `rating` (1–5 integer, nil = unrated) used for filtering, sorting, and AI meal plan generation.
 - `MealPlan` → `MealPlanDay` → `MealPlanMeal` → `Recipe` (hierarchical, with servings and daily calorie targets)
+- `RecipeShare` — token-based recipe sharing (pending/accepted/declined status, 30-day expiry)
 - `Access` — polymorphic resource-level permissions
 - `MagicLink`, `Session`, `AccessToken` — auth infrastructure
 
 ### Pagination
 
 Uses Pagy gem (`config/initializers/pagy.rb`) with `pagy_countless` for "Load More" UX (no total count query). Default 12 items per page. `Pagy::Backend` included in `ApplicationController`, `Pagy::Frontend` in `ApplicationHelper`.
+
+### Recipe Sharing
+
+Token-based recipe sharing via email. Users share recipes by entering a recipient email; the system generates a `RecipeShare` with a unique token (24 chars, 30-day expiry) and sends an email with a public share link.
+
+**Flow:** Sender creates share → `RecipeShareMailer` sends invitation email → recipient visits `/recipes/shared/:token` (public, no auth required) → sees recipe preview → clicks "Add to My Recipes" → redirected to sign-in if unauthenticated → `RecipeFork` deep-copies recipe to recipient's account → share marked accepted.
+
+**Key components:**
+- `RecipeShare` model — token, status enum (pending/accepted/declined), 30-day expiry, sender/recipient tracking
+- `RecipeFork` service — deep-copies recipe between accounts (ingredients, instructions, nutrition, tips, tags, attachments). Sets `forked_from` association and optional `shared_by` attribution.
+- `RecipeSharesController` (public) — requires BOTH `allow_unauthenticated_access` AND `allow_unauthorized_access` plus `disallow_account_scope` for controllers outside `/:account_id` URL pattern
+- `Accounts::RecipeSharesController` — account-scoped, creates shares and lists share status
+- New user flow: stores `pending_share_token` in session → processed after signup in `Signups::CompletionsController`
+
+**Testing notes:** UUID PKs mean `Recipe.last` is unreliable — use `Recipe.order(created_at: :desc).first`. Worktrees lack compiled CSS assets, so controller tests rendering full HTML may need `rescue ActionView::Template::Error` blocks.
 
 ### Caching Strategy
 

@@ -1,0 +1,28 @@
+pending_share:
+  id: share_pending
+  recipe_id: recipe_salmon
+  sender_id: user_test_one
+  recipient_email: newuser@example.com
+  token: pending_share_token_abc123
+  status: 0
+  expires_at: <%= 30.days.from_now.to_fs(:db) %>
+
+accepted_share:
+  id: share_accepted
+  recipe_id: recipe_eggs
+  sender_id: user_test_one
+  recipient_email: another@example.com
+  recipient_user_id: user_test_two
+  token: accepted_share_token_xyz789
+  status: 1
+  expires_at: <%= 30.days.from_now.to_fs(:db) %>
+  accepted_at: <%= 1.day.ago.to_fs(:db) %>
+
+expired_share:
+  id: share_expired
+  recipe_id: recipe_salmon
+  sender_id: user_test_one
+  recipient_email: expired@example.com
+  token: expired_share_token_def456
+  status: 0
+  expires_at: <%= 1.day.ago.to_fs(:db) %>

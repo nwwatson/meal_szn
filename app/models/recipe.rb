@@ -18,6 +18,9 @@ class Recipe < ApplicationRecord
   has_many :recipe_tags, dependent: :destroy
   has_many :tags, through: :recipe_tags
   has_many :meal_plan_meals
+  has_many :recipe_shares, dependent: :destroy
+  belongs_to :forked_from, class_name: "Recipe", optional: true
+  has_many :forks, class_name: "Recipe", foreign_key: :forked_from_id, dependent: :nullify
 
   validates :title, presence: true
   validates :category, presence: true

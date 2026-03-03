@@ -20,6 +20,11 @@ Rails.application.routes.draw do
     resource :completion, only: %i[new create], controller: "signups/completions"
   end
 
+  # Recipe sharing (public, token-based)
+  get "recipes/shared/:token", to: "recipe_shares#show", as: :recipe_share
+  post "recipes/shared/:token/accept", to: "recipe_shares#accept", as: :accept_recipe_share
+  post "recipes/shared/:token/decline", to: "recipe_shares#decline", as: :decline_recipe_share
+
   # First-boot onboarding flow (creates first account)
   resource :onboarding, only: %i[new create] do
     resource :completion, only: %i[new create], controller: "onboardings/completions"
@@ -50,6 +55,7 @@ Rails.application.routes.draw do
         patch :apply_resolution
         patch :rate
       end
+      resources :shares, only: [ :create, :index ], controller: "recipe_shares"
       collection do
         get :search_usda
         get :import_url

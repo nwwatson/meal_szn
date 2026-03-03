@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_02_221956) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_03_182956) do
   create_table "access_tokens", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at"
@@ -309,6 +309,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_221956) do
     t.index ["recipe_id"], name: "index_recipe_nutrition_data_on_recipe_id"
   end
 
+  create_table "recipe_shares", id: :string, force: :cascade do |t|
+    t.datetime "accepted_at"
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.string "recipe_id", null: false
+    t.string "recipient_email", null: false
+    t.string "recipient_user_id"
+    t.string "sender_id", null: false
+    t.integer "status", default: 0, null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recipe_id"], name: "index_recipe_shares_on_recipe_id"
+    t.index ["recipient_email"], name: "index_recipe_shares_on_recipient_email"
+    t.index ["sender_id"], name: "index_recipe_shares_on_sender_id"
+    t.index ["token"], name: "index_recipe_shares_on_token", unique: true
+  end
+
   create_table "recipe_tags", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "recipe_id", null: false
@@ -331,9 +348,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_221956) do
     t.integer "cook_time"
     t.datetime "created_at", null: false
     t.text "description"
+    t.string "forked_from_id"
     t.integer "prep_time"
     t.integer "rating"
     t.integer "servings"
+    t.string "shared_by"
     t.string "source"
     t.string "title", null: false
     t.datetime "updated_at", null: false
@@ -341,6 +360,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_221956) do
     t.index ["account_id", "rating"], name: "index_recipes_on_account_id_and_rating"
     t.index ["account_id", "title"], name: "index_recipes_on_account_id_and_title"
     t.index ["account_id"], name: "index_recipes_on_account_id"
+    t.index ["forked_from_id"], name: "index_recipes_on_forked_from_id"
   end
 
   create_table "sessions", id: :string, force: :cascade do |t|
@@ -438,6 +458,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_221956) do
   add_foreign_key "nutrition_item_portions", "nutrition_items"
   add_foreign_key "recipe_instructions", "recipes"
   add_foreign_key "recipe_nutrition_data", "recipes"
+  add_foreign_key "recipe_shares", "recipes"
+  add_foreign_key "recipe_shares", "users", column: "recipient_user_id"
+  add_foreign_key "recipe_shares", "users", column: "sender_id"
   add_foreign_key "recipe_tags", "recipes"
   add_foreign_key "recipe_tags", "tags"
   add_foreign_key "recipe_tips", "recipes"

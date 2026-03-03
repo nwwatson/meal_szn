@@ -7,6 +7,7 @@ class User < ApplicationRecord
   belongs_to :identity, optional: true  # optional for system users
   has_many :meal_plans, dependent: :destroy
   has_one :dietary_profile, dependent: :nullify
+  has_many :sent_recipe_shares, class_name: "RecipeShare", foreign_key: :sender_id, dependent: :destroy
 
   validates :name, presence: true, length: { maximum: 240 }
 

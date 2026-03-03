@@ -1,0 +1,40 @@
+<% content_for(:title, "Shares for #{@recipe.title} - MealSzn") %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <%= link_to "&larr; Back to Recipe".html_safe, recipe_path(@recipe), class: "text-primary-600 hover:text-primary-700 text-sm font-medium" %>
+  </div>
+
+  <h1 class="text-2xl font-display font-bold text-warm-900 mb-6">Shares for "<%= @recipe.title %>"</h1>
+
+  <% if @shares.any? %>
+    <div class="bg-white rounded-lg shadow divide-y divide-warm-100">
+      <% @shares.each do |share| %>
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <p class="text-warm-900 font-medium"><%= share.recipient_email %></p>
+            <p class="text-xs text-warm-500">Sent <%= time_ago_in_words(share.created_at) %> ago</p>
+          </div>
+          <div>
+            <% case share.status %>
+            <% when "pending" %>
+              <% if share.expired? %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warm-100 text-warm-600">Expired</span>
+              <% else %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+              <% end %>
+            <% when "accepted" %>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Accepted</span>
+            <% when "declined" %>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Declined</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <p class="text-warm-500">You haven't shared this recipe with anyone yet.</p>
+    </div>
+  <% end %>
+</div>

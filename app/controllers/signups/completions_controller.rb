@@ -18,6 +18,7 @@ class Signups::CompletionsController < ApplicationController
     )
 
     if (account = @signup.complete)
+      process_pending_recipe_share(account)
       redirect_to "/#{account.external_account_id}", notice: "Welcome to your new account!"
     else
       flash.now[:alert] = @signup.errors.full_messages.to_sentence
@@ -29,5 +30,17 @@ class Signups::CompletionsController < ApplicationController
 
   def require_authenticated_identity
     redirect_to new_session_path unless Current.identity
+  end
+
+  def process_pending_recipe_share(account)
+    token = session.delete(:pending_share_token)
+    return unless token
+
+    share = RecipeShare.active.find_by(token: token)
+    return unless share
+
+    recipient_user = Current.identity.users.find_by(account: account, active: true)
+    RecipeFork.call(share.recipe, account, shared_by: share.sender_name)
+    share.accept!(recipient_user: recipient_user)
   end
 end
