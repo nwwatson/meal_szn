@@ -46,7 +46,7 @@ gem "image_processing", "~> 1.2"
 gem "anthropic"
 
 # Pagination [https://github.com/ddnexus/pagy]
-gem "pagy", "~> 9.0"
+gem "pagy", "~> 43.5"
 
 # MCP (Model Context Protocol) server for AI integration [https://github.com/yjacquin/fast-mcp]
 gem "fast-mcp"
